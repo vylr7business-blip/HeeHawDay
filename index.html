@@ -968,7 +968,7 @@ function draw(){
   ctx.setTransform(DPR*cam.z,0,0,DPR*cam.z,DPR*cam.x,DPR*cam.y);
   { const [ax,ay]=toWorld(0,0), [bx,by]=toWorld(W,H); VIEW={x0:ax,y0:ay,x1:bx,y1:by}; }
   HIT=[]; OVER=[];
-  drawGround(); cloudShadows();
+  drawGround();
   const items=[];
   for(let i=0;i<NPLOTS;i++){ const [x,y]=plotXY(i); if(zoneOpen(zoneAt(x,y))) items.push([x+y+1,()=>drawCrop(i)]); }
   const tv=(x,y)=>{ const [X,Y]=iso(x+.5,y+.5); return inView(X,Y); };
