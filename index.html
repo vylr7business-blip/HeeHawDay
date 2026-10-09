@@ -1,0 +1,928 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="HeeHawDay: a farm game set on Elsberry Riding & Farm in Rockmart, Georgia. Grow crops, feed the animals, run trail rides and fill party orders.">
+<title>HeeHawDay</title>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font-size:14px}[hidden]{display:none!important}</style>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Fredoka:wght@500;600;700&display=swap">
+<style>
+/* Layout: full-screen isometric farm map (canvas) you drag around; chunky game HUD floats on top; wooden pop-up panels for barn, mill, orders and animal roster. Single sunny look. */
+:root{
+  --ink:#3a2414; --cream:#fff4d6; --cream2:#f7e3b5; --wood:#9a5b2c; --wood-dk:#6b3a17; --wood-lt:#d79a57;
+  --green:#5cb82e; --green-dk:#3d8a1a; --gold:#ffc531; --gold-dk:#d68f00; --red:#e04a2f; --red-dk:#a92d17; --sky:#9fd85a;
+  --display:"Lilita One","Arial Rounded MT Bold",system-ui,sans-serif; --body:"Fredoka","Trebuchet MS",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{height:100%;overflow:hidden}
+body{background:#79b93d;color:var(--ink);font-family:var(--body);font-weight:600;-webkit-user-select:none;user-select:none}
+*{box-sizing:border-box}
+#cv{position:fixed;inset:0;width:100%;height:100%;touch-action:none;display:block;cursor:grab}
+#cv.dragging{cursor:grabbing}
+button{font-family:var(--body);font-weight:700;color:var(--ink);border:none;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.t-out{text-shadow:-2px -2px 0 var(--ink),2px -2px 0 var(--ink),-2px 2px 0 var(--ink),2px 2px 0 var(--ink),0 3px 0 var(--ink)}
+
+/* HUD */
+#hud{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;
+  padding:calc(10px + env(safe-area-inset-top,0px)) 16px 0;pointer-events:none}
+#hud>*{pointer-events:auto}
+[hidden]{display:none!important}
+.lvlbox{display:flex;align-items:center}
+.star{position:relative;width:58px;height:58px;z-index:2;filter:drop-shadow(0 3px 0 rgba(0,0,0,.25))}
+.star svg{width:100%;height:100%}
+.star b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding-top:5px;font-family:var(--display);font-size:22px;color:#fff;font-weight:400}
+.xp{margin-left:-14px;height:26px;width:clamp(110px,26vw,190px);background:#5a3a1e;border:3px solid var(--ink);border-radius:0 14px 14px 0;position:relative;overflow:hidden;box-shadow:0 3px 0 rgba(0,0,0,.25)}
+.xp i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(#8fe34f,#4cae1f);transition:width .35s}
+.xp span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--display);color:#fff;font-size:14px;letter-spacing:.5px;font-weight:400;padding-left:10px;font-variant-numeric:tabular-nums}
+.right{display:flex;align-items:flex-start;gap:10px}
+.xlink{margin-top:8px;width:38px;height:38px;border-radius:50%;background:#111;border:3px solid var(--ink);box-shadow:0 3px 0 rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;transition:transform .08s}
+.xlink:hover{transform:scale(1.08)}
+.xlink svg{width:18px;height:18px}
+.nextup{margin:4px 0 0 -6px;font-size:12px;color:#fff;max-width:240px;line-height:1.25;text-shadow:0 1px 0 var(--ink),1px 0 0 var(--ink),-1px 0 0 var(--ink),0 -1px 0 var(--ink)}
+.lvls{display:grid;gap:8px}
+.lv{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;background:#fff;border:3px solid var(--ink);border-radius:14px;padding:8px 10px}
+.lv.got{background:#e3f5cf}
+.lv.next{background:#fff3c4;border-color:var(--gold-dk)}
+.lvn{width:40px;height:40px;border-radius:50%;background:var(--gold);border:3px solid var(--ink);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:18px;font-weight:400}
+.lvu{display:flex;flex-wrap:wrap;gap:5px;min-width:0}
+.lvu span{background:#f7e3b5;border-radius:8px;padding:1px 7px;font-size:13px}
+.tick{font-family:var(--display);color:var(--green-dk);font-size:22px}
+@media (max-width:560px){.nextup{display:none}}
+.title{font-family:var(--display);color:#fff;font-size:clamp(22px,4.4vw,40px);letter-spacing:.5px;font-weight:400;line-height:1;text-align:center;padding-top:6px;pointer-events:none!important}
+.title small{display:block;font-family:var(--body);font-size:11px;letter-spacing:2px;text-transform:uppercase;text-shadow:0 1px 0 var(--ink);margin-top:4px}
+@media (max-width:560px){.title{font-size:22px;padding-top:14px}.xp{width:90px}}
+.coins{display:flex;align-items:center;height:34px;background:#5a3a1e;border:3px solid var(--ink);border-radius:18px;padding:0 14px 0 4px;box-shadow:0 3px 0 rgba(0,0,0,.25);margin-top:10px}
+.coin{width:34px;height:34px;margin-left:-14px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3a8 0 18%,#ffd23f 19% 60%,#e09a00 61%);border:3px solid var(--ink);display:flex;align-items:center;justify-content:center;font-family:var(--display);color:#b06d00;font-size:16px}
+.coins b{font-family:var(--display);color:#fff;font-size:18px;font-weight:400;margin-left:8px;font-variant-numeric:tabular-nums}
+
+/* side buttons */
+#dock{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:10;display:flex;gap:10px;align-items:flex-end}
+.rb{width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 40% 30%,#fff7da,#f4d590);border:4px solid var(--ink);box-shadow:0 5px 0 var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:26px;line-height:1;position:relative;transition:transform .08s}
+.rb:active{transform:translateY(3px);box-shadow:0 2px 0 var(--ink)}
+.rb span{font-family:var(--display);font-size:11px;font-weight:400;margin-top:2px;color:var(--wood-dk)}
+.rb .badge{position:absolute;top:-6px;right:-6px;min-width:24px;height:24px;border-radius:12px;background:var(--red);color:#fff;border:3px solid var(--ink);font-family:var(--display);font-size:13px;font-weight:400;display:flex;align-items:center;justify-content:center;padding:0 4px}
+@media (max-width:480px){.rb{width:54px;height:54px;font-size:22px}#dock{gap:6px}}
+
+/* banner + hint */
+#banner{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom,0px));z-index:11;background:var(--cream);border:4px solid var(--ink);border-radius:18px;box-shadow:0 5px 0 var(--ink);
+  padding:6px 8px 6px 14px;display:flex;gap:10px;align-items:center;font-size:15px;max-width:calc(100% - 32px)}
+#banner .big{font-size:26px}
+.btn{font-family:var(--display);font-weight:400;font-size:16px;color:#fff;border-radius:12px;padding:6px 14px;border:3px solid var(--ink);box-shadow:0 4px 0 var(--ink);background:linear-gradient(#7fd347,#46a11c);letter-spacing:.3px;text-shadow:0 2px 0 rgba(0,0,0,.3);white-space:nowrap}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 var(--ink)}
+.btn.gold{background:linear-gradient(#ffd75a,#f0a400)}
+.btn.red{background:linear-gradient(#ff7a5c,#d23a1c)}
+.btn:disabled{background:linear-gradient(#cfc5b0,#b3a68b);cursor:not-allowed;text-shadow:none;color:#f3eee3}
+#hint{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:9;color:#fff;font-size:13px;max-width:200px;line-height:1.3;text-shadow:0 1px 0 var(--ink),0 0 6px rgba(0,0,0,.4)}
+@media (max-width:640px){#hint{display:none}}
+
+/* bubble anchored to map */
+#bubble{position:fixed;z-index:12;transform:translate(-50%,calc(-100% - 14px));background:var(--cream);border:4px solid var(--ink);border-radius:18px;box-shadow:0 5px 0 rgba(58,36,20,.9);padding:10px 12px;min-width:160px;max-width:260px;text-align:center}
+#bubble::after{content:"";position:absolute;left:50%;bottom:-14px;transform:translateX(-50%);border:10px solid transparent;border-top:12px solid var(--ink)}
+#bubble .nm{font-family:var(--display);font-size:20px;font-weight:400;line-height:1.05;display:flex;align-items:center;justify-content:center;gap:6px}
+#bubble .sp{font-size:12px;color:#8a6440;text-transform:uppercase;letter-spacing:1.2px;margin:2px 0 8px}
+#bubble .row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+#bubble .info{font-size:14px;margin-bottom:6px;font-variant-numeric:tabular-nums}
+#bubble input{font-family:var(--display);font-size:18px;width:100%;border:3px solid var(--ink);border-radius:10px;padding:2px 8px;text-align:center;background:#fff;color:var(--ink);-webkit-user-select:text;user-select:text}
+.edit{background:var(--gold);border:2px solid var(--ink);border-radius:8px;font-size:12px;padding:0 6px;height:22px}
+.seed{width:58px;height:62px;border-radius:14px;background:radial-gradient(circle at 40% 30%,#fffbe8,#f2d797);border:3px solid var(--ink);box-shadow:0 3px 0 var(--ink);font-size:28px;position:relative;display:flex;align-items:center;justify-content:center}
+.seed small{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);background:#fff;border:2px solid var(--ink);border-radius:8px;font-size:11px;padding:0 5px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.seed:disabled{opacity:.45;cursor:not-allowed}
+.bar{height:12px;border:3px solid var(--ink);border-radius:8px;background:#5a3a1e;overflow:hidden;margin:4px 0 6px}
+.bar i{display:block;height:100%;background:linear-gradient(#8fe34f,#4cae1f)}
+
+/* panels */
+#shade{position:fixed;inset:0;z-index:20;background:rgba(40,24,10,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.panel{width:min(600px,100%);max-height:calc(100% - 40px);display:flex;flex-direction:column;background:var(--cream);border:5px solid var(--ink);border-radius:22px;box-shadow:0 7px 0 var(--ink);position:relative;margin-top:18px}
+.ribbon{position:absolute;top:-24px;left:50%;transform:translateX(-50%);background:linear-gradient(#c8783a,#9a5b2c);border:4px solid var(--ink);border-radius:14px;padding:4px 26px 6px;font-family:var(--display);font-weight:400;font-size:24px;color:#fff;white-space:nowrap;box-shadow:0 4px 0 var(--ink)}
+.x{position:absolute;top:-16px;right:-12px;width:42px;height:42px;border-radius:50%;background:linear-gradient(#ff7a5c,#d23a1c);border:4px solid var(--ink);box-shadow:0 4px 0 var(--ink);color:#fff;font-family:var(--display);font-size:20px;font-weight:400}
+.pbody{padding:30px 16px 16px;overflow-y:auto;min-height:0}
+.psub{text-align:center;font-size:14px;color:#8a6440;margin:0 0 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.card{background:#fff;border:3px solid var(--ink);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:6px;box-shadow:0 3px 0 rgba(58,36,20,.4);min-width:0}
+.card.paper{background:linear-gradient(#fffdf4,#fbf0d2);transform:rotate(-.6deg)}
+.card.paper:nth-child(2n){transform:rotate(.7deg)}
+.card h4{margin:0;font-family:var(--display);font-weight:400;font-size:17px;line-height:1.1}
+.card .note{font-size:12px;color:#8a6440;margin-top:-2px}
+.need{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border-radius:10px;padding:1px 8px;font-size:14px;border:2px solid var(--ink);background:#f6cdbf;font-variant-numeric:tabular-nums}
+.chip.ok{background:#c9ee9f}
+.reward{display:flex;gap:10px;font-family:var(--display);font-weight:400;font-size:15px}
+.card .acts{display:flex;gap:6px;align-items:center;margin-top:auto}
+.card .acts .btn{flex:1;font-size:14px;padding:5px 8px}
+.skip{background:none;font-size:12px;color:#8a6440;text-decoration:underline}
+.waitcard{align-items:center;justify-content:center;text-align:center;color:#8a6440;min-height:150px;font-size:14px}
+.inv{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:10px}
+.slot{background:#fff;border:3px solid var(--ink);border-radius:14px;text-align:center;padding:6px 4px 4px}
+.slot .ic{font-size:30px;line-height:1.1}
+.slot .n{font-family:var(--display);font-weight:400;font-size:18px;font-variant-numeric:tabular-nums}
+.slot .l{font-size:11px;color:#8a6440}
+.slot.zero{opacity:.45}
+.sect{font-family:var(--display);font-weight:400;font-size:16px;color:var(--wood);margin:14px 0 8px}
+.sect:first-child{margin-top:0}
+.rec{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;background:#fff;border:3px solid var(--ink);border-radius:14px;padding:8px 10px}
+.rec .ic{font-size:30px}
+.rec b{font-family:var(--display);font-weight:400;font-size:16px;display:block}
+.rec .in{font-size:13px;color:#8a6440}
+.recs{display:grid;gap:8px}
+.hopper{display:flex;gap:8px;flex-wrap:wrap}
+.hslot{width:74px;height:74px;border:3px dashed #b49572;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;color:#8a6440;font-variant-numeric:tabular-nums;background:#fbf0d2}
+.hslot.busy{border-style:solid;border-color:var(--ink);background:#fff;color:var(--ink)}
+.hslot.done{border-style:solid;border-color:var(--ink);background:#c9ee9f;cursor:pointer;color:var(--ink);animation:pulse 1s ease-in-out infinite}
+.hslot .ic{font-size:26px}
+@keyframes pulse{50%{transform:scale(1.06)}}
+.roster{display:grid;gap:6px}
+.ra{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;background:#fff;border:3px solid var(--ink);border-radius:12px;padding:4px 8px}
+.ra .ic{font-size:26px;text-align:center}
+.ra input{font-family:var(--display);font-size:16px;border:2px solid #d8c29c;border-radius:8px;padding:2px 8px;width:100%;min-width:0;background:#fffdf4;color:var(--ink);-webkit-user-select:text;user-select:text}
+.ra small{font-size:11px;color:#8a6440;white-space:nowrap}
+.ra.lock{opacity:.5}
+.fine{font-size:12px;color:#8a6440;margin:14px 0 0;line-height:1.4}
+
+/* toasts + floats + level up */
+.toast{position:fixed;left:50%;top:calc(84px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:30;background:var(--ink);color:#fff;padding:8px 18px;border-radius:999px;font-size:15px;transition:opacity .3s;max-width:calc(100% - 32px);text-align:center}
+.float{position:fixed;z-index:15;pointer-events:none;font-family:var(--display);font-weight:400;font-size:20px;color:#fff;animation:up 1.1s ease-out forwards;white-space:nowrap;transform:translateX(-50%)}
+@keyframes up{to{margin-top:-50px;opacity:0}}
+.lvlup{text-align:center}
+.lvlup .big{font-family:var(--display);font-size:54px;color:var(--gold);line-height:1;font-weight:400}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<canvas id="cv" aria-label="Farm map. Drag to look around, tap fields, animals and buildings."></canvas>
+
+<div id="hud">
+  <div class="lvlbox">
+    <div class="star"><svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 6l12.6 27.4 29.9 3.3-22.4 20.1 6.3 29.5L50 71.4 23.6 86.3l6.3-29.5L7.5 36.7l29.9-3.3z" fill="#ffc531" stroke="#3a2414" stroke-width="7" stroke-linejoin="round"/></svg><b class="t-out" id="lvl">1</b></div>
+    <div><div class="xp"><i id="xpbar"></i><span class="t-out" id="xptxt">0/15</span></div><div class="nextup" id="nextup"></div></div>
+  </div>
+  <div class="title t-out">HeeHawDay</div>
+  <div class="right"><a class="xlink" href="https://x.com/HeeHawDay" target="_blank" rel="noopener" aria-label="HeeHawDay on X"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M17.75 3h3.07l-6.7 7.66L22 21h-6.17l-4.83-6.32L5.47 21H2.4l7.17-8.2L2 3h6.33l4.37 5.77L17.75 3zm-1.08 16.17h1.7L7.4 4.74H5.58l11.09 14.43z"/></svg></a><div class="coins"><div class="coin">$</div><b class="t-out" id="coins">0</b></div></div>
+</div>
+
+<div id="hint">Drag to look around · scroll or pinch to zoom · tap fields, animals and buildings</div>
+
+<div id="dock">
+  <button class="rb" data-open="levels" aria-label="Level rewards">🗺️<span>Levels</span></button>
+  <button class="rb" data-open="roster" aria-label="Animal names">🐾<span>Animals</span></button>
+  <button class="rb" data-open="barn" aria-label="Barn storage">🏚️<span>Barn</span></button>
+  <button class="rb" data-open="mill" aria-label="Feed mill">⚙️<span>Mill</span><i class="badge" id="millBadge" hidden></i></button>
+  <button class="rb" data-open="orders" aria-label="Order board">📋<span>Orders</span><i class="badge" id="ordBadge" hidden></i></button>
+</div>
+
+<div id="banner" hidden></div>
+<div id="bubble" hidden></div>
+<div id="shade" hidden></div>
+
+<script>
+(() => {
+const now = () => Date.now();
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ================= GAME DATA ================= */
+const CROPS = {
+  wheat:  {name:"Wheat",   icon:"🌾", time:30,  lvl:1, xp:1, seed:2},
+  corn:   {name:"Corn",    icon:"🌽", time:60,  lvl:1, xp:1, seed:3},
+  carrot: {name:"Carrots", icon:"🥕", time:90,  lvl:2, xp:2, seed:5},
+  pumpkin:{name:"Pumpkins",icon:"🎃", time:180, lvl:4, xp:3, seed:9},
+  peach:  {name:"Georgia Peaches",icon:"🍑", time:240, lvl:6, xp:4, seed:14},
+};
+const FEEDS = {
+  chickenFeed:{name:"Chicken Feed", icon:"🌰"}, barnFeed:{name:"Barnyard Hay", icon:"🌿"},
+  critterMix:{name:"Critter Mix", icon:"🥬"},   sweetFeed:{name:"Sweet Feed", icon:"🍯"},
+};
+const GOODS = {
+  egg:{name:"Eggs",icon:"🥚"}, milk:{name:"Goat Milk",icon:"🥛"}, wool:{name:"Wool",icon:"🧶"}, heart:{name:"Smiles",icon:"💛"},
+  cheese:{name:"Goat Cheese",icon:"🧀"}, butter:{name:"Butter",icon:"🧈"},
+  bread:{name:"Farm Bread",icon:"🍞"}, pie:{name:"Pumpkin Pie",icon:"🥧"}, cobbler:{name:"Peach Cobbler",icon:"🍮"},
+  smores:{name:"S'mores",icon:"🍫"}, chili:{name:"Campfire Chili",icon:"🍲"},
+};
+const VALUE = {wheat:2,corn:3,carrot:5,pumpkin:9,peach:14,egg:6,milk:9,wool:12,heart:8,cheese:24,butter:34,bread:22,pie:45,cobbler:70,smores:26,chili:45};
+// Production buildings. Feed Mill makes animal feed; the rest make goods for orders.
+const PROD = {
+  mill:   {name:"Feed Mill",  icon:"⚙️", lvl:1, slots:3, recipes:{
+    chickenFeed:{in:{wheat:2,corn:1},  out:3, time:20, lvl:1, xp:2},
+    barnFeed:   {in:{wheat:1,corn:2},  out:3, time:30, lvl:1, xp:2},
+    critterMix: {in:{carrot:2,wheat:1},out:3, time:40, lvl:2, xp:2},
+    sweetFeed:  {in:{corn:2,carrot:1}, out:2, time:40, lvl:2, xp:2}}},
+  dairy:  {name:"Dairy",      icon:"🥛", lvl:5, slots:2, recipes:{
+    cheese:{in:{milk:2},  out:1, time:60, lvl:5, xp:5},
+    butter:{in:{milk:3},  out:1, time:90, lvl:6, xp:7}}},
+  bakery: {name:"Bakery",     icon:"🍞", lvl:7, slots:2, recipes:{
+    bread:  {in:{wheat:3,egg:1},              out:1, time:50,  lvl:7, xp:5},
+    pie:    {in:{pumpkin:1,egg:2,wheat:1},    out:1, time:100, lvl:7, xp:9},
+    cobbler:{in:{peach:2,wheat:1,butter:1},   out:1, time:120, lvl:9, xp:14}}},
+  bonfire:{name:"Bonfire Pit",icon:"🔥", lvl:8, slots:2, recipes:{
+    smores:{in:{wheat:2,milk:1},              out:1, time:45, lvl:8, xp:5},
+    chili: {in:{corn:2,carrot:1,pumpkin:1},   out:1, time:80, lvl:9, xp:9}}},
+};
+const recipeOf = k => { for(const p in PROD) if(PROD[p].recipes[k]) return [p,PROD[p].recipes[k]]; return [null,null]; };
+// Animal types are the ones Elsberry Riding & Farm lists for its rides and petting zoo. Names are placeholders.
+const KINDS = {
+  pony:    {sp:"Pony",          icon:"🐴", sprite:"🐎", feed:"barnFeed",    out:{coins:25}, time:45,  lvl:1, size:34, speed:.55, label:"Pony ride"},
+  chicken: {sp:"Chicken",       icon:"🐔", sprite:"🐓", feed:"chickenFeed", out:{egg:1},    time:30,  lvl:1, size:26, speed:.7},
+  goat:    {sp:"Goat",          icon:"🐐", feed:"barnFeed",    out:{milk:1},   time:60,  lvl:1, size:32, speed:.5},
+  sheep:   {sp:"Sheep",         icon:"🐑", feed:"barnFeed",    out:{wool:1},   time:80,  lvl:2, size:32, speed:.4},
+  rabbit:  {sp:"Rabbit",        icon:"🐇", feed:"critterMix",  out:{heart:1},  time:45,  lvl:2, size:24, speed:.8},
+  puppy:   {sp:"Puppy",         icon:"🐶", sprite:"🐕", feed:"critterMix",  out:{heart:1},  time:30,  lvl:2, size:26, speed:.9},
+  horse:   {sp:"Trail Horse",   icon:"🐎", feed:"sweetFeed",   out:{coins:50}, time:90,  lvl:3, size:42, speed:.6, label:"1-hr trail ride, $50"},
+  calf:    {sp:"Baby Cow",      icon:"🐮", sprite:"🐄", feed:"barnFeed",    out:{heart:2},  time:70,  lvl:3, size:32, speed:.4},
+  donkey:  {sp:"Baby Donkey",   icon:"🫏", sprite:"🐎", tint:"grayscale(1) brightness(1.08) contrast(.85)", feed:"barnFeed", out:{heart:2}, time:70, lvl:3, size:32, speed:.45},
+  duckling:{sp:"Duckling",      icon:"🐥", feed:"chickenFeed", out:{heart:1},  time:40,  lvl:4, size:22, speed:.7},
+  piglet:  {sp:"Baby Pig",      icon:"🐷", sprite:"🐖", feed:"critterMix",  out:{heart:2},  time:60,  lvl:4, size:28, speed:.55},
+  tortoise:{sp:"Giant Tortoise",icon:"🐢", feed:"critterMix",  out:{heart:4},  time:150, lvl:5, size:34, speed:.15},
+};
+// [kind, placeholder name, level it joins the farm]
+const ANIMALS = [
+  ["horse","Dusty",3],["horse","Biscuit",3],
+  ["pony","Pony #1",1],["pony","Pony #2",1],["pony","Pony #3",1],
+  ["chicken","Henrietta",1],["chicken","Pecky",1],
+  ["goat","Goat #1",1],["goat","Goat #2",1],
+  ["sheep","Sheep #1",2],
+  ["calf","Baby Cow",3],["donkey","Baby Donkey",3],
+  ["rabbit","Bunny #1",2],["duckling","Duckling #1",4],["puppy","Puppy #1",2],
+  ["piglet","Piglet #1",4],["tortoise","Tortoise",5],
+  ["horse","Trail Horse #3",6],["horse","Trail Horse #4",8],["pony","Pony #4",6],
+  ["chicken","Hen #3",5],["chicken","Hen #4",7],["goat","Goat #3",6],["sheep","Sheep #2",7],
+  ["rabbit","Bunny #2",6],["puppy","Puppy #2",8],["piglet","Piglet #2",8],["duckling","Duckling #2",7],
+  ["tortoise","Tortoise #2",10],["calf","Baby Cow #2",9],["donkey","Baby Donkey #2",9],
+];
+const alvl = a => Math.max(KINDS[a.kind].lvl, (ANIMALS[a.id]||[])[2]||1);
+const CUSTOMERS = [
+  ["Birthday party","Petting zoo + pony rides, 2 hours"],
+  ["Date Night couple","Trail ride, farm-to-table supper, bonfire"],
+  ["Horse camp kids","Snacks for the camp cabin"],
+  ["Neighbor on Grady Rd","Trading for a few groceries"],
+  ["Ride & Dine gift","Christmas gift certificate basket"],
+  ["Mobile petting zoo","Packing the trailer for a backyard party"],
+  ["Trail ride group","Six riders and a cooler"],
+  ["Pony painting class","Unlimited kids, one patient pony"],
+];
+
+/* ================= MAP LAYOUT (tile coords) ================= */
+const MAP = 34, TW = 72, TH = 36;
+const ZONES = [
+  {id:"east",  name:"East Meadow", x:24,y:0, w:10,h:16, lvl:5},
+  {id:"south", name:"South Fields",x:0, y:24,w:24,h:10, lvl:6},
+  {id:"trail", name:"Trailhead",   x:24,y:16,w:10,h:18, lvl:8},
+];
+const zoneAt = (x,y) => ZONES.find(z=>x>=z.x&&x<z.x+z.w&&y>=z.y&&y<z.y+z.h);
+const zoneOpen = z => !z || S.lvl>=z.lvl;
+const BLOCKS = [{x:2,y:5,cols:4,n:12},{x:3,y:26,cols:6,n:12}];
+const PLOT_LVL = [1,1,1,1,1,1,2,2,3,3,4,4, 6,6,6,6,6,6, 8,8,8,8,8,8];
+const NPLOTS = 24;
+function plotXY(i){ const b = i<12? BLOCKS[0] : BLOCKS[1]; const j = i<12? i : i-12; return [b.x + j%b.cols, b.y + Math.floor(j/b.cols)]; }
+const plotCost = i => i<12 ? 80*(i-4) : 100*(i-6);
+const PENS = [
+  {id:"coop",    name:"Coop",          x:15,y:1, w:4,h:3, ground:"#e8cf7a", ground2:"#dcc06a", kinds:["chicken","duckling"]},
+  {id:"pasture", name:"Pasture",       x:15,y:5, w:6,h:4, ground:"#a6db5a", ground2:"#9bd24f", kinds:["goat","sheep","calf","donkey"]},
+  {id:"paddock", name:"Riding Paddock",x:2, y:12,w:6,h:6, ground:"#d9ab72", ground2:"#cf9f64", kinds:["horse","pony"]},
+  {id:"zoo",     name:"Petting Zoo",   x:10,y:12,w:6,h:5, ground:"#bfe58a", ground2:"#b3dc7c", kinds:["rabbit","puppy","piglet","tortoise"]},
+];
+const BUILD = {
+  barn:   {x:10,y:1,w:3,d:3},
+  silo:   {x:13,y:1,w:1,d:1},
+  mill:   {x:10,y:6,w:2,d:2},
+  house:  {x:2, y:1,w:3,d:3},
+  board:  {x:13,y:9,w:1,d:1},
+  dairy:  {x:26,y:3,w:3,d:2},
+  bakery: {x:14,y:26,w:3,d:2},
+  bonfire:{x:27,y:22,w:2,d:2},
+};
+const BASE_TREES = [[6,1],[0,0],[1,0],[0,2],[0,8],[1,10],[0,14],[0,18],[1,21],[4,22],[7,21],[11,22],[14,21],[21,21],[23,19],[23,14],[22,12],[23,6],[22,2],[20,0],[7,0],[18,11],[9,19],[5,20],[20,22],[12,19]];
+function pathTile(x,y){
+  if((y===10 && x<=23) || (x===8 && y<=23) || (y===20 && x>=8 && x<=23)) return true;
+  if(S.lvl>=5 && ((y===10 && x>=24) || (x===27 && y>=5 && y<=9))) return true;
+  if(S.lvl>=6 && ((x===8 && y>=24 && y<=29) || (y===29 && x>=8 && x<=15))) return true;
+  if(S.lvl>=8 && ((y===20 && x>=24 && x<=28) || (x===28 && y>=20 && y<=21) || (x===29 && y>=24 && y<=33))) return true;
+  return false;
+}
+const inPond = (x,y) => { const dx=(x+.5-20.2)/2.6, dy=(y+.5-15.5)/2.2; return dx*dx+dy*dy<1; };
+function reserved(x,y){
+  if(pathTile(x,y)) return true;
+  for(const k in BUILD){ const b=BUILD[k]; if(x>=b.x-1&&x<=b.x+b.w&&y>=b.y-1&&y<=b.y+b.d) return true; }
+  const b=BLOCKS[1]; if(x>=b.x-1&&x<=b.x+b.cols&&y>=b.y-1&&y<=b.y+2) return true;
+  if(x>=24&&x<=31&&y>=17&&y<=27) return true; // trailhead clearing
+  return false;
+}
+
+/* ================= STATE ================= */
+const KEY = "elsberry-farm-v1";
+function fresh(){
+  return { coins:60, xp:0, lvl:1, plotsOwned:6, lastCrop:{},
+    inv:{wheat:6,corn:4,chickenFeed:3,barnFeed:3},
+    plots:Array(NPLOTS).fill(null), prod:{mill:[],dairy:[],bakery:[],bonfire:[]},
+    animals:ANIMALS.map(([k,n],i)=>({id:i,kind:k,name:n,start:null})), orders:[] };
+}
+let S; try{ S = JSON.parse(localStorage.getItem(KEY)); }catch(e){ S = null; }
+if(!S || !S.inv || !Array.isArray(S.animals)) S = fresh();
+// migrate older saves
+if(!S.prod) S.prod={mill:S.mill||[],dairy:[],bakery:[],bonfire:[]}; delete S.mill;
+for(const p in PROD) if(!S.prod[p]) S.prod[p]=[];
+while(S.plots.length<NPLOTS) S.plots.push(null);
+for(let i=S.animals.length;i<ANIMALS.length;i++) S.animals.push({id:i,kind:ANIMALS[i][0],name:ANIMALS[i][1],start:null});
+const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} };
+
+const need = l => 15*l*l;
+const fmt = s => { s=Math.max(0,Math.ceil(s)); const m=Math.floor(s/60); return m? `${m}m ${String(s%60).padStart(2,"0")}s` : `${s}s`; };
+const iconOf = k => (CROPS[k]||FEEDS[k]||GOODS[k]||{}).icon || "🪙";
+const nameOf = k => (CROPS[k]||FEEDS[k]||GOODS[k]||{}).name || k;
+const have = k => S.inv[k]||0;
+const animalReady = a => a.start!==null && (now()-a.start)/1000 >= KINDS[a.kind].time;
+const plotReady = p => p && (now()-p.start)/1000 >= CROPS[p.crop].time;
+
+/* ---------- what each level unlocks ---------- */
+function unlocksAt(L){
+  const out=[];
+  for(const z of ZONES) if(z.lvl===L) out.push(`🗺️ New land: ${z.name}`);
+  for(const p in PROD) if(PROD[p].lvl===L && L>1) out.push(`${PROD[p].icon} ${PROD[p].name}`);
+  for(const k in CROPS) if(CROPS[k].lvl===L && L>1) out.push(`${CROPS[k].icon} ${CROPS[k].name}`);
+  for(const p in PROD) for(const r in PROD[p].recipes){ const R=PROD[p].recipes[r]; if(R.lvl===L && L>1) out.push(`${iconOf(r)} ${nameOf(r)}`); }
+  const ani={}; S.animals.forEach(a=>{ if(alvl(a)===L){ const sp=KINDS[a.kind].sp; ani[sp]=(ani[sp]||0)+1; } });
+  for(const sp in ani){ const k=Object.keys(KINDS).find(x=>KINDS[x].sp===sp); out.push(`${KINDS[k].icon} ${ani[sp]>1? ani[sp]+" ":""}${sp}${ani[sp]>1?"s":""}`); }
+  const plots=PLOT_LVL.filter((l,i)=>l===L && i>=6).length; if(plots && L>1) out.push(`🟫 ${plots} more field plots`);
+  return out;
+}
+
+/* ================= CANVAS ================= */
+const cv = $("#cv"), ctx = cv.getContext("2d");
+let W=0, H=0, DPR=1;
+const cam = {x:0,y:0,z:1};
+const iso = (x,y) => [(x-y)*TW/2, (x+y)*TH/2];
+function resize(){ DPR=Math.min(2,window.devicePixelRatio||1); W=innerWidth; H=innerHeight; cv.width=W*DPR; cv.height=H*DPR; }
+function centerOn(tx,ty){ const [X,Y]=iso(tx,ty); cam.x=W/2-X*cam.z; cam.y=H/2-Y*cam.z; }
+function clampCam(){
+  const minX=-MAP*TW/2, maxX=MAP*TW/2, minY=-60, maxY=MAP*TH;
+  const cx=(W/2-cam.x)/cam.z, cy=(H/2-cam.y)/cam.z;
+  const nx=Math.max(minX,Math.min(maxX,cx)), ny=Math.max(minY,Math.min(maxY,cy));
+  cam.x=W/2-nx*cam.z; cam.y=H/2-ny*cam.z;
+}
+resize(); cam.z=Math.max(.5,Math.min(1.15,W/1150)); centerOn(11,9);
+addEventListener("resize",()=>{ resize(); clampCam(); });
+const toWorld=(sx,sy)=>[(sx-cam.x)/cam.z,(sy-cam.y)/cam.z];
+const toScreen=(wx,wy)=>[wx*cam.z+cam.x,wy*cam.z+cam.y];
+function toTile(sx,sy){ const [wx,wy]=toWorld(sx,sy); return [wy/TH+wx/TW, wy/TH-wx/TW]; }
+
+const OUT="#3a2414";
+function poly(pts,fill,stroke=OUT,lw=2.2){
+  ctx.beginPath(); pts.forEach((p,i)=> i? ctx.lineTo(p[0],p[1]) : ctx.moveTo(p[0],p[1])); ctx.closePath();
+  if(fill){ ctx.fillStyle=fill; ctx.fill(); }
+  if(stroke){ ctx.lineJoin="round"; ctx.strokeStyle=stroke; ctx.lineWidth=lw; ctx.stroke(); }
+}
+const up=(p,h)=>[p[0],p[1]-h];
+const L=(p,q,t)=>[p[0]+(q[0]-p[0])*t,p[1]+(q[1]-p[1])*t];
+function diamond(x,y,fill,stroke=null,lw=1,inset=0){
+  poly([iso(x+inset,y+inset),iso(x+1-inset,y+inset),iso(x+1-inset,y+1-inset),iso(x+inset,y+1-inset)],fill,stroke,lw);
+}
+function box(x,y,w,d,h,top,left,right,lw=2.2){
+  const A=iso(x,y),B=iso(x+w,y),C=iso(x+w,y+d),D=iso(x,y+d);
+  poly([D,C,up(C,h),up(D,h)],left,OUT,lw); poly([C,B,up(B,h),up(C,h)],right,OUT,lw);
+  if(top) poly([up(A,h),up(B,h),up(C,h),up(D,h)],top,OUT,lw);
+  return {A,B,C,D};
+}
+function gableRoof(x,y,w,d,h,rh,roof,roofDk,gable,o=.18){
+  const A=up(iso(x-o,y-o),h),B=up(iso(x+w+o,y-o),h),C=up(iso(x+w+o,y+d+o),h),D=up(iso(x-o,y+d+o),h);
+  const R1=up(iso(x-o,y+d/2),h+rh),R2=up(iso(x+w+o,y+d/2),h+rh);
+  poly([A,B,R2,R1],roofDk);
+  poly([up(iso(x+w,y),h),up(iso(x+w,y+d),h),up(iso(x+w,y+d/2),h+rh*.92)],gable);
+  poly([D,C,R2,R1],roof);
+}
+function emoji(ch,x,y,size,flip=false,alpha=1,filter=null){
+  ctx.save(); ctx.globalAlpha=alpha; if(filter) ctx.filter=filter; ctx.fillStyle="#000"; ctx.translate(x,y); if(flip) ctx.scale(-1,1);
+  ctx.font=`${size}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+  ctx.textAlign="center"; ctx.textBaseline="alphabetic"; ctx.fillText(ch,0,0); ctx.restore();
+}
+function shadow(x,y,rx,ry=rx*.45){ ctx.beginPath(); ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2); ctx.fillStyle="rgba(40,60,10,.28)"; ctx.fill(); }
+function bubbleIcon(x,y,ch,o={}){
+  const r=o.r||15; ctx.save(); if(o.bob) y+=Math.sin(now()/260+x)*2.5;
+  ctx.beginPath(); ctx.moveTo(x-5,y+r-3); ctx.lineTo(x,y+r+7); ctx.lineTo(x+5,y+r-3); ctx.fillStyle="#fff"; ctx.fill(); ctx.strokeStyle=OUT; ctx.lineWidth=2.2; ctx.stroke();
+  ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fillStyle=o.bg||"#fff"; ctx.fill(); ctx.stroke();
+  if(o.ring!=null){ ctx.beginPath(); ctx.arc(x,y,r-3,-Math.PI/2,-Math.PI/2+Math.PI*2*o.ring); ctx.strokeStyle="#4cae1f"; ctx.lineWidth=4; ctx.stroke(); }
+  if(ch) emoji(ch,x,y+r*.42,r*1.15,false,o.alpha||1);
+  ctx.restore();
+}
+function label(text,x,y,size=12,color="#fff"){
+  ctx.save(); ctx.font=`${size}px "Lilita One","Arial Rounded MT Bold",sans-serif`; ctx.textAlign="center"; ctx.textBaseline="middle";
+  ctx.lineWidth=3.5; ctx.strokeStyle=OUT; ctx.lineJoin="round"; ctx.strokeText(text,x,y); ctx.fillStyle=color; ctx.fillText(text,x,y); ctx.restore();
+}
+const hash=(x,y)=>{ let h=x*374761393+y*668265263; h=(h^(h>>13))*1274126177; return ((h^(h>>16))>>>0)/4294967295; };
+
+/* ---------- animal wandering ---------- */
+const RT={};
+const penOf=kind=>PENS.find(p=>p.kinds.includes(kind));
+const rnd=(a,b)=>a+Math.random()*(b-a);
+function pickTarget(r,pen){ r.tx=rnd(pen.x+.55,pen.x+pen.w-.55); r.ty=rnd(pen.y+.6,pen.y+pen.h-.45); }
+function rt(a){ if(!RT[a.id]){ const pen=penOf(a.kind); const r={wait:rnd(0,2),flip:Math.random()<.5}; pickTarget(r,pen); r.x=r.tx; r.y=r.ty; pickTarget(r,pen); RT[a.id]=r; } return RT[a.id]; }
+function stepAnimals(dt){
+  for(const a of S.animals){
+    if(alvl(a)>S.lvl) continue; const K=KINDS[a.kind], r=rt(a), pen=penOf(a.kind);
+    if(r.wait>0){ r.wait-=dt; continue; }
+    const dx=r.tx-r.x, dy=r.ty-r.y, dist=Math.hypot(dx,dy), sp=K.speed*(animalReady(a)?.4:1)*dt;
+    if(dist<sp){ r.x=r.tx; r.y=r.ty; r.wait=rnd(1,4); pickTarget(r,pen); }
+    else{ r.x+=dx/dist*sp; r.y+=dy/dist*sp; const sx=dx-dy; if(Math.abs(sx)>.01) r.flip=sx>0; }
+  }
+}
+
+/* ---------- drawing ---------- */
+let HIT=[], OVER=[];
+function hitRect(kind,x0,y0,x1,y1,ref){ HIT.push({kind,ref,x0,y0,x1,y1}); }
+function drawGround(){
+  for(let y=0;y<MAP;y++) for(let x=0;x<MAP;x++){
+    const z=zoneAt(x,y), open=zoneOpen(z);
+    let c=(x+y)%2?"#8fd14f":"#86c847";
+    if(!open) c=(x+y)%2?"#5f9b33":"#5a9430";
+    const pen=PENS.find(p=>x>=p.x&&x<p.x+p.w&&y>=p.y&&y<p.y+p.h);
+    if(pen) c=(x+y)%2?pen.ground:pen.ground2;
+    if(open && pathTile(x,y)) c=(x+y)%2?"#d27a45":"#c96f3b";
+    diamond(x,y,c,null);
+    if(open && !pen && !pathTile(x,y) && !inPond(x,y)){
+      const h=hash(x,y);
+      if(h>.88){ const [X,Y]=iso(x+.5,y+.5); const col=h>.96?"#fff":(h>.92?"#ffd84a":"#ff9fb4");
+        for(let k=0;k<3;k++){ ctx.beginPath(); ctx.arc(X+(k-1)*7,Y+(k%2)*4-2,2.6,0,7); ctx.fillStyle=col; ctx.fill(); } }
+      else if(h<.15){ const [X,Y]=iso(x+.3+h,y+.6); ctx.strokeStyle="#5fa22c"; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(X-4,Y); ctx.lineTo(X-6,Y-7); ctx.moveTo(X,Y); ctx.lineTo(X,Y-9); ctx.moveTo(X+4,Y); ctx.lineTo(X+6,Y-7); ctx.stroke(); }
+    }
+  }
+  // zone borders (locked)
+  for(const z of ZONES) if(!zoneOpen(z)){
+    poly([iso(z.x,z.y),iso(z.x+z.w,z.y),iso(z.x+z.w,z.y+z.h),iso(z.x,z.y+z.h)],null,"rgba(58,36,20,.35)",3);
+  }
+  // pond
+  const [px,py]=iso(20.2,15.5);
+  ctx.save(); ctx.beginPath(); ctx.ellipse(px,py,TW*1.75,TH*1.6,0,0,7); ctx.fillStyle="#d9b98a"; ctx.fill(); ctx.strokeStyle=OUT; ctx.lineWidth=2.2; ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(px,py+2,TW*1.55,TH*1.38,0,0,7); ctx.fillStyle="#4fb4e0"; ctx.fill();
+  ctx.beginPath(); ctx.ellipse(px-20,py-8,TW*.9,TH*.6,0,0,7); ctx.fillStyle="#7ccbec"; ctx.fill();
+  const t=now()/900; ctx.strokeStyle="rgba(255,255,255,.7)"; ctx.lineWidth=2;
+  for(let k=0;k<3;k++){ ctx.beginPath(); ctx.ellipse(px+40-k*45,py+10-k*6,10+((t+k)%3)*5,4+((t+k)%3)*2,0,0,7); ctx.globalAlpha=1-((t+k)%3)/3; ctx.stroke(); }
+  ctx.restore();
+  emoji("🦆",px+30,py+4,24,Math.sin(now()/3000)>0);
+  // plots soil
+  for(let i=0;i<NPLOTS;i++){
+    const [x,y]=plotXY(i); if(!zoneOpen(zoneAt(x,y))) continue;
+    if(i<S.plotsOwned){ diamond(x,y,"#7a4b28",OUT,2,.05); diamond(x,y,"#8e5a31",null,0,.14);
+      ctx.strokeStyle="rgba(60,30,10,.45)"; ctx.lineWidth=2;
+      for(let k=1;k<4;k++){ const s=iso(x+.14+k*.18,y+.14), e=iso(x+.14+k*.18,y+.86); ctx.beginPath(); ctx.moveTo(s[0],s[1]); ctx.lineTo(e[0],e[1]); ctx.stroke(); } }
+    else diamond(x,y,"#76b83d",null,0,.05);
+  }
+}
+function drawTree(x,y,dark){
+  const [X,Y]=iso(x+.5,y+.5); const s=.85+hash(x,y)*.4;
+  shadow(X,Y,26*s);
+  ctx.fillStyle="#7a4b28"; ctx.strokeStyle=OUT; ctx.lineWidth=2.2; ctx.beginPath(); ctx.rect(X-5*s,Y-26*s,10*s,26*s); ctx.fill(); ctx.stroke();
+  const blobs=[[0,-46,24],[-16,-34,18],[16,-34,18],[0,-62,17]];
+  const c1=dark?"#3a7d22":"#46a02a", c2=dark?"#4f9a2e":"#6cc23d";
+  for(const [dx,dy,r] of blobs){ ctx.beginPath(); ctx.arc(X+dx*s,Y+dy*s,r*s,0,7); ctx.fillStyle=c1; ctx.fill(); ctx.stroke(); }
+  for(const [dx,dy,r] of blobs){ ctx.beginPath(); ctx.arc(X+dx*s-4*s,Y+dy*s-5*s,r*s*.5,0,7); ctx.fillStyle=c2; ctx.fill(); }
+}
+function drawZoneSign(z){
+  const [X,Y]=iso(z.x+z.w/2,z.y+z.h/2);
+  shadow(X,Y,34);
+  ctx.fillStyle="#7a4b28"; ctx.strokeStyle=OUT; ctx.lineWidth=2.2; ctx.fillRect(X-4,Y-60,8,60); ctx.strokeRect(X-4,Y-60,8,60);
+  poly([[X-70,Y-104],[X+70,Y-104],[X+70,Y-52],[X-70,Y-52]],"#e2b170");
+  label(z.name.toUpperCase(),X,Y-90,15);
+  label(`🔒 Level ${z.lvl}`,X,Y-68,15,"#ffe066");
+  hitRect("zone",X-74,Y-108,X+74,Y+4,z.id);
+}
+function drawBarn(){
+  const b=BUILD.barn,h=58; const {D,C}=box(b.x,b.y,b.w,b.d,h,null,"#d2402f","#a92f21");
+  const p0=L(D,C,.32),p1=L(D,C,.68); poly([p0,p1,up(p1,40),up(p0,40)],"#8a2318");
+  ctx.strokeStyle="#fff"; ctx.lineWidth=3.5; ctx.beginPath(); ctx.moveTo(...p0); ctx.lineTo(...up(p1,40)); ctx.moveTo(...p1); ctx.lineTo(...up(p0,40)); ctx.stroke();
+  poly([p0,p1,up(p1,40),up(p0,40)],null,"#fff",3.5); poly([p0,p1,up(p1,40),up(p0,40)],null,OUT,1.5);
+  const B=iso(b.x+b.w,b.y); const q0=L(C,B,.38),q1=L(C,B,.62); poly([up(q0,30),up(q1,30),up(q1,48),up(q0,48)],"#f2d16b","#fff",3);
+  gableRoof(b.x,b.y,b.w,b.d,h,46,"#7d4a35","#5f3626","#a92f21");
+  const [lx,ly]=iso(b.x+b.w/2,b.y+b.d/2); label("ELSBERRY FARM",lx,ly-h-14,15);
+  hitRect("barn",lx-110,ly-h-70,lx+110,ly+55);
+}
+function drawSilo(){
+  const s=BUILD.silo; const [X,Y]=iso(s.x+.5,s.y+.5); const r=26,h=96; shadow(X,Y+4,r+6);
+  ctx.fillStyle="#b9c7cf"; ctx.strokeStyle=OUT; ctx.lineWidth=2.2;
+  ctx.beginPath(); ctx.moveTo(X-r,Y); ctx.lineTo(X-r,Y-h); ctx.lineTo(X+r,Y-h); ctx.lineTo(X+r,Y); ctx.ellipse(X,Y,r,r*.45,0,0,Math.PI); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle="rgba(58,36,20,.35)"; for(let k=1;k<5;k++){ ctx.beginPath(); ctx.ellipse(X,Y-k*19,r,r*.45,0,0,Math.PI); ctx.stroke(); }
+  ctx.beginPath(); ctx.arc(X,Y-h,r,Math.PI,0); ctx.fillStyle="#d2402f"; ctx.fill(); ctx.strokeStyle=OUT; ctx.stroke();
+  hitRect("barn",X-r,Y-h-r,X+r,Y+10);
+}
+function prodOverlay(id,x,y){
+  const q=S.prod[id], done=q.find(j=>j.end<=now());
+  if(done) OVER.push(()=>bubbleIcon(x,y,iconOf(done.k),{bob:true,r:17}));
+  else if(q.length){ const j=q[0], R=PROD[id].recipes[j.k], st=j.end-R.time*1000; OVER.push(()=>bubbleIcon(x,y,iconOf(j.k),{r:14,ring:Math.min(1,Math.max(0,(now()-st)/(R.time*1000))),alpha:.55})); }
+}
+function drawMill(){
+  const m=BUILD.mill,h=64; const {D,C}=box(m.x,m.y,m.w,m.d,h,null,"#e6d8bd","#cdbc9b");
+  ctx.fillStyle="rgba(120,95,60,.25)"; for(let k=0;k<8;k++){ const p=up(L(D,C,.1+k*.1),12+(k%3)*16); ctx.fillRect(p[0]-5,p[1]-3,10,6); }
+  const dp0=L(D,C,.4),dp1=L(D,C,.6); poly([dp0,dp1,up(dp1,30),up(dp0,30)],"#7a4b28");
+  gableRoof(m.x,m.y,m.w,m.d,h,34,"#e0a03a","#b97c22","#cdbc9b");
+  const hub=up(L(D,C,.5),h+8); const a=now()/700;
+  ctx.save(); ctx.translate(hub[0],hub[1]-6);
+  for(let k=0;k<4;k++){ ctx.save(); ctx.rotate(a+k*Math.PI/2); poly([[-4,0],[4,0],[9,-58],[-9,-58]],"#fff7e6",OUT,2); ctx.strokeStyle="rgba(58,36,20,.5)"; ctx.lineWidth=1.5; for(let j=1;j<5;j++){ ctx.beginPath(); ctx.moveTo(-7,-j*11); ctx.lineTo(7,-j*11); ctx.stroke(); } ctx.restore(); }
+  ctx.beginPath(); ctx.arc(0,0,7,0,7); ctx.fillStyle="#7a4b28"; ctx.fill(); ctx.strokeStyle=OUT; ctx.stroke(); ctx.restore();
+  const [lx,ly]=iso(m.x+m.w/2,m.y+m.d/2); label("FEED MILL",lx,ly+18,13);
+  hitRect("prod",lx-80,ly-h-110,lx+80,ly+40,"mill"); prodOverlay("mill",lx+44,ly-h-48);
+}
+function lockedSite(id){
+  const b=BUILD[id], P=PROD[id]; const [X,Y]=iso(b.x+b.w/2,b.y+b.d/2);
+  diamond(b.x,b.y,"#c9a46c",null);
+  poly([iso(b.x,b.y),iso(b.x+b.w,b.y),iso(b.x+b.w,b.y+b.d),iso(b.x,b.y+b.d)],"rgba(201,164,108,.8)",OUT,2);
+  ctx.fillStyle="#7a4b28"; ctx.strokeStyle=OUT; ctx.lineWidth=2; ctx.fillRect(X-3,Y-44,6,44); ctx.strokeRect(X-3,Y-44,6,44);
+  poly([[X-52,Y-78],[X+52,Y-78],[X+52,Y-40],[X-52,Y-40]],"#e2b170");
+  label(P.name.toUpperCase(),X,Y-66,13); label(`🔒 Level ${P.lvl}`,X,Y-50,12,"#ffe066");
+  hitRect("site",X-56,Y-82,X+56,Y+10,id);
+}
+function drawDairy(){
+  if(S.lvl<PROD.dairy.lvl) return lockedSite("dairy");
+  const b=BUILD.dairy,h=50; const {D,C}=box(b.x,b.y,b.w,b.d,h,null,"#fbfbf4","#e4e4da");
+  ctx.fillStyle="#3a2414"; for(const [t,hh,r] of [[.2,30,7],[.55,18,9],[.8,36,6]]){ const p=up(L(D,C,t),hh); ctx.beginPath(); ctx.ellipse(p[0],p[1],r,r*.7,.3,0,7); ctx.fill(); }
+  const B=iso(b.x+b.w,b.y); for(const [t,hh,r] of [[.3,24,8],[.7,38,6]]){ const p=up(L(C,B,t),hh); ctx.beginPath(); ctx.ellipse(p[0],p[1],r,r*.7,-.3,0,7); ctx.fill(); }
+  const d0=L(D,C,.42),d1=L(D,C,.58); poly([d0,d1,up(d1,30),up(d0,30)],"#4f7aa3");
+  gableRoof(b.x,b.y,b.w,b.d,h,36,"#d2402f","#a92f21","#e4e4da");
+  const [lx,ly]=iso(b.x+b.w/2,b.y+b.d/2); label("DAIRY",lx,ly-h-12,14);
+  hitRect("prod",lx-100,ly-h-60,lx+100,ly+40,"dairy"); prodOverlay("dairy",lx+60,ly-h-30);
+}
+function drawBakery(){
+  if(S.lvl<PROD.bakery.lvl) return lockedSite("bakery");
+  const b=BUILD.bakery,h=52; const {D,C}=box(b.x,b.y,b.w,b.d,h,null,"#d9774a","#b85f36");
+  ctx.strokeStyle="rgba(58,36,20,.25)"; ctx.lineWidth=1.5; for(let k=1;k<5;k++){ ctx.beginPath(); ctx.moveTo(...up(D,k*10)); ctx.lineTo(...up(C,k*10)); ctx.stroke(); }
+  // striped awning
+  for(let k=0;k<6;k++){ const a0=up(L(D,C,k/6),34),a1=up(L(D,C,(k+1)/6),34); poly([a0,a1,[a1[0],a1[1]+12],[a0[0],a0[1]+12]],k%2?"#fff":"#e04a2f",OUT,1.5); }
+  const d0=L(D,C,.4),d1=L(D,C,.6); poly([d0,d1,up(d1,22),up(d0,22)],"#6b3a17");
+  gableRoof(b.x,b.y,b.w,b.d,h,30,"#5d5a63","#46434c","#b85f36");
+  const ch=up(iso(b.x+2.2,b.y+.6),h+30); ctx.fillStyle="#9b5a38"; ctx.strokeStyle=OUT; ctx.lineWidth=2; ctx.fillRect(ch[0]-7,ch[1]-18,14,20); ctx.strokeRect(ch[0]-7,ch[1]-18,14,20);
+  const t=now()/1100; for(let k=0;k<3;k++){ const f=(t+k/3)%1; ctx.beginPath(); ctx.arc(ch[0]+f*12,ch[1]-24-f*34,5+f*7,0,7); ctx.fillStyle=`rgba(255,255,255,${.75*(1-f)})`; ctx.fill(); }
+  const [lx,ly]=iso(b.x+b.w/2,b.y+b.d/2); label("BAKERY",lx,ly+20,14);
+  hitRect("prod",lx-100,ly-h-60,lx+100,ly+40,"bakery"); prodOverlay("bakery",lx-60,ly-h-30);
+}
+function drawBonfire(){
+  if(S.lvl<PROD.bonfire.lvl) return lockedSite("bonfire");
+  const b=BUILD.bonfire; const [X,Y]=iso(b.x+b.w/2,b.y+b.d/2);
+  // log benches
+  for(const [dx,dy] of [[-62,-6],[62,-6],[0,30]]){ ctx.save(); ctx.translate(X+dx,Y+dy); ctx.fillStyle="#8a5528"; ctx.strokeStyle=OUT; ctx.lineWidth=2; ctx.beginPath(); ctx.ellipse(0,0,24,8,0,0,7); ctx.fill(); ctx.stroke(); ctx.restore(); }
+  ctx.beginPath(); ctx.ellipse(X,Y,34,16,0,0,7); ctx.fillStyle="#9d9a92"; ctx.fill(); ctx.strokeStyle=OUT; ctx.lineWidth=2.2; ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(X,Y,24,10,0,0,7); ctx.fillStyle="#4a3324"; ctx.fill();
+  const t=now()/120;
+  for(let k=0;k<5;k++){ const fx=X+(k-2)*7, fh=22+Math.sin(t+k*1.7)*7+(k===2?10:0);
+    poly([[fx-7,Y],[fx,Y-fh],[fx+7,Y]],"#ff8a1f",null); poly([[fx-4,Y],[fx,Y-fh*.6],[fx+4,Y]],"#ffe14d",null); }
+  for(let k=0;k<4;k++){ const f=(now()/1400+k/4)%1; ctx.beginPath(); ctx.arc(X+Math.sin(k*2+f*6)*10,Y-30-f*60,2,0,7); ctx.fillStyle=`rgba(255,200,80,${1-f})`; ctx.fill(); }
+  label("BONFIRE PIT",X,Y+52,14);
+  hitRect("prod",X-80,Y-70,X+80,Y+60,"bonfire"); prodOverlay("bonfire",X+44,Y-60);
+}
+function drawHouse(){
+  const b=BUILD.house,h=54; const {D,C}=box(b.x,b.y,b.w,b.d,h,null,"#fbf1da","#e3d3b1"); const B=iso(b.x+b.w,b.y);
+  for(const t of [.18,.72]){ const w0=L(D,C,t),w1=L(D,C,t+.14); poly([up(w0,22),up(w1,22),up(w1,40),up(w0,40)],"#9fd8f0"); }
+  const d0=L(D,C,.43),d1=L(D,C,.57); poly([d0,d1,up(d1,34),up(d0,34)],"#3f6f9a");
+  for(const t of [.3,.6]){ const w0=L(C,B,t),w1=L(C,B,t+.14); poly([up(w0,22),up(w1,22),up(w1,40),up(w0,40)],"#9fd8f0"); }
+  poly([iso(b.x-.05,b.y+b.d),iso(b.x+b.w,b.y+b.d),iso(b.x+b.w,b.y+b.d+.5),iso(b.x-.05,b.y+b.d+.5)],"#b07a45");
+  gableRoof(b.x,b.y,b.w,b.d,h,40,"#4f7aa3","#3a5d80","#e3d3b1");
+  const [lx,ly]=iso(b.x+b.w/2,b.y+b.d/2); label("ELSBERRY FARMHOUSE",lx,ly-h-12,13);
+  hitRect("roster",lx-100,ly-h-60,lx+100,ly+50);
+  const ch=up(iso(b.x+.6,b.y+.8),h+42); ctx.fillStyle="#9b5a38"; ctx.strokeStyle=OUT; ctx.lineWidth=2; ctx.fillRect(ch[0]-6,ch[1]-16,12,18); ctx.strokeRect(ch[0]-6,ch[1]-16,12,18);
+  const t=now()/1200; for(let k=0;k<3;k++){ const f=(t+k/3)%1; ctx.beginPath(); ctx.arc(ch[0]+f*14,ch[1]-22-f*36,5+f*7,0,7); ctx.fillStyle=`rgba(255,255,255,${.75*(1-f)})`; ctx.fill(); }
+}
+function drawBoard(){
+  const b=BUILD.board; const [X,Y]=iso(b.x+.5,b.y+.5); shadow(X,Y,30);
+  ctx.fillStyle="#7a4b28"; ctx.strokeStyle=OUT; ctx.lineWidth=2.2;
+  for(const dx of [-24,20]){ ctx.fillRect(X+dx,Y-58,6,58); ctx.strokeRect(X+dx,Y-58,6,58); }
+  poly([[X-36,Y-80],[X+36,Y-80],[X+36,Y-38],[X-36,Y-38]],"#b57a42");
+  poly([[X-40,Y-86],[X+40,Y-86],[X+40,Y-78],[X-40,Y-78]],"#8a5528");
+  const ready=readyOrders();
+  for(let k=0;k<3;k++){ const nx=X-30+k*21; poly([[nx,Y-74],[nx+17,Y-74],[nx+17,Y-46],[nx,Y-46]],S.orders[k]&&!S.orders[k].wait?"#fffdf2":"#d9c4a0",OUT,1.5);
+    ctx.fillStyle="#e04a2f"; ctx.beginPath(); ctx.arc(nx+8.5,Y-71,2.5,0,7); ctx.fill(); }
+  label("ORDERS",X,Y-94,13); hitRect("orders",X-46,Y-110,X+46,Y+10);
+  if(ready) OVER.push(()=>{ bubbleIcon(X+38,Y-112,null,{bob:true,r:15,bg:"#ffc531"}); label("!",X+38,Y-110+Math.sin(now()/260+X+38)*2.5,20); });
+}
+function drawFenceSeg(p,q){
+  const post=24; ctx.strokeStyle=OUT; ctx.lineWidth=5.5; ctx.lineCap="round";
+  for(const h of [16,7]){ ctx.beginPath(); ctx.moveTo(p[0],p[1]-h); ctx.lineTo(q[0],q[1]-h); ctx.stroke(); }
+  ctx.strokeStyle="#f3e2bf"; ctx.lineWidth=3;
+  for(const h of [16,7]){ ctx.beginPath(); ctx.moveTo(p[0],p[1]-h); ctx.lineTo(q[0],q[1]-h); ctx.stroke(); }
+  for(const r of [p,q]){ ctx.fillStyle="#fff3d9"; ctx.strokeStyle=OUT; ctx.lineWidth=2; ctx.beginPath(); ctx.rect(r[0]-3.5,r[1]-post,7,post); ctx.fill(); ctx.stroke(); }
+}
+function fenceSegments(pen){
+  const segs=[]; const {x,y,w,h}=pen;
+  for(let i=0;i<w;i++){ segs.push([[x+i,y],[x+i+1,y]]); if(i!==Math.floor(w/2)) segs.push([[x+i,y+h],[x+i+1,y+h]]); }
+  for(let j=0;j<h;j++){ segs.push([[x,y+j],[x,y+j+1]]); segs.push([[x+w,y+j],[x+w,y+j+1]]); }
+  return segs;
+}
+function drawCrop(i){
+  const p=S.plots[i]; const [x,y]=plotXY(i);
+  if(i>=S.plotsOwned){
+    const [X,Y]=iso(x+.5,y+.5);
+    for(const [dx,dy,r] of [[-10,-6,11],[8,-4,12],[0,-14,10]]){ ctx.beginPath(); ctx.arc(X+dx,Y+dy,r,0,7); ctx.fillStyle="#3f8f22"; ctx.fill(); ctx.strokeStyle=OUT; ctx.lineWidth=2; ctx.stroke(); }
+    if(i===S.plotsOwned){ const lockL=PLOT_LVL[i]; poly([[X-24,Y-40],[X+24,Y-40],[X+24,Y-24],[X-24,Y-24]],"#e8c48a",OUT,2);
+      label(S.lvl>=lockL? plotCost(i)+"" : "Lv "+lockL, X,Y-32,12, S.lvl>=lockL?"#ffe066":"#fff"); }
+    return;
+  }
+  if(!p) return;
+  const C=CROPS[p.crop], t=Math.min(1,(now()-p.start)/1000/C.time);
+  for(const [u,v] of [[.3,.3],[.7,.3],[.3,.7],[.7,.7],[.5,.5]]){
+    const [X,Y]=iso(x+u,y+v);
+    if(t>=1) emoji(C.icon,X,Y+4,18);
+    else{ const s=3+t*7; ctx.fillStyle="#5fbf2a"; ctx.strokeStyle=OUT; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.ellipse(X-s*.5,Y-s*.4,s*.55,s*.28,-.6,0,7); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(X+s*.5,Y-s*.4,s*.55,s*.28,.6,0,7); ctx.fill(); ctx.stroke(); }
+  }
+}
+function drawAnimal(a){
+  const K=KINDS[a.kind], r=rt(a); const [X,Y]=iso(r.x,r.y);
+  const hop=r.wait<=0? Math.abs(Math.sin(now()/150+a.id))*3 : 0;
+  shadow(X,Y,K.size*.42);
+  emoji(K.sprite||K.icon,X,Y-hop+K.size*.12,K.size,r.flip,1,K.tint||null);
+  hitRect("animal",X-K.size*.55,Y-K.size*1.05,X+K.size*.55,Y+6,a.id);
+  const top=Y-K.size-6;
+  OVER.push(()=>{
+    label(a.name,X,Y+12,11);
+    if(animalReady(a)){ const o=Object.entries(K.out)[0]; bubbleIcon(X,top-8,o[0]==="coins"?"🪙":iconOf(o[0]),{bob:true,r:15}); }
+    else if(a.start===null) bubbleIcon(X,top-6,FEEDS[K.feed].icon,{r:12,alpha:.75,bg:"#fffbe8"});
+    else bubbleIcon(X,top-4,null,{r:9,ring:Math.min(1,(now()-a.start)/1000/K.time),bg:"#fffbe8"});
+  });
+}
+let zoneTreeCache=null, zoneTreeLvl=-1;
+function zoneTrees(){
+  if(zoneTreeLvl===S.lvl) return zoneTreeCache;
+  const out=[];
+  for(const z of ZONES){ const open=zoneOpen(z);
+    for(let y=z.y;y<z.y+z.h;y++) for(let x=z.x;x<z.x+z.w;x++){
+      const h=hash(x*3+1,y*7+2);
+      if(!open){ if((x+y)%2===0 && h>.4) out.push([x,y,true]); }
+      else if(!reserved(x,y) && (h>.9 || ((x===MAP-1||y===MAP-1) && h>.45))) out.push([x,y,false]);
+    } }
+  zoneTreeCache=out; zoneTreeLvl=S.lvl; return out;
+}
+function draw(){
+  ctx.setTransform(DPR,0,0,DPR,0,0); ctx.fillStyle="#79b93d"; ctx.fillRect(0,0,W,H);
+  ctx.setTransform(DPR*cam.z,0,0,DPR*cam.z,DPR*cam.x,DPR*cam.y);
+  HIT=[]; OVER=[];
+  drawGround();
+  const items=[];
+  for(let i=0;i<NPLOTS;i++){ const [x,y]=plotXY(i); if(zoneOpen(zoneAt(x,y))) items.push([x+y+1,()=>drawCrop(i)]); }
+  for(const [x,y] of BASE_TREES) items.push([x+y+1.2,()=>drawTree(x,y,false)]);
+  for(const [x,y,d] of zoneTrees()) items.push([x+y+1.2,()=>drawTree(x,y,d)]);
+  const B=BUILD, k=b=>b.x+b.w+b.y+b.d-.5;
+  items.push([k(B.barn),drawBarn],[B.silo.x+B.silo.y+1.4,drawSilo],[k(B.mill),drawMill],[k(B.house)+.2,drawHouse],[B.board.x+B.board.y+1.1,drawBoard]);
+  if(zoneOpen(ZONES[0])) items.push([k(B.dairy),drawDairy]);
+  if(zoneOpen(ZONES[1])) items.push([k(B.bakery),drawBakery]);
+  if(zoneOpen(ZONES[2])) items.push([k(B.bonfire)+1,drawBonfire]);
+  for(const z of ZONES) if(!zoneOpen(z)) items.push([z.x+z.w/2+z.y+z.h/2+.6,()=>drawZoneSign(z)]);
+  for(const pen of PENS){
+    for(const [p,q] of fenceSegments(pen)){ const kk=(p[0]+q[0])/2+(p[1]+q[1])/2; items.push([kk+.02,()=>drawFenceSeg(iso(...p),iso(...q))]); }
+    const locked=S.animals.filter(a=>pen.kinds.includes(a.kind) && alvl(a)>S.lvl);
+    const [sx,sy]=iso(pen.x+pen.w/2,pen.y+pen.h);
+    items.push([pen.x+pen.y+pen.w+pen.h+.5,()=>{ label(pen.name.toUpperCase(),sx,sy+16,12);
+      if(locked.length) label(`More animals at Lv ${Math.min(...locked.map(alvl))}`,sx,sy+31,10,"#ffe066"); }]);
+  }
+  for(const a of S.animals){ if(alvl(a)>S.lvl) continue; const r=rt(a); items.push([r.x+r.y,()=>drawAnimal(a)]); }
+  items.sort((a,b)=>a[0]-b[0]); for(const [,f] of items) f();
+  for(const f of OVER) f();
+}
+
+/* ================= UI HELPERS ================= */
+function toast(msg){ const t=document.createElement("div"); t.className="toast"; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.style.opacity=0,1700); setTimeout(()=>t.remove(),2100); }
+function floatScreen(sx,sy,txt){ const f=document.createElement("div"); f.className="float t-out"; f.textContent=txt; f.style.left=sx+"px"; f.style.top=sy+"px"; document.body.appendChild(f); setTimeout(()=>f.remove(),1100); }
+function gain(xp,coins,sx,sy){
+  S.coins+=coins||0; S.xp+=xp||0;
+  const parts=[]; if(coins) parts.push(`+${coins} 🪙`); if(xp) parts.push(`+${xp} ⭐`);
+  if(parts.length && sx!=null) floatScreen(sx,sy,parts.join("  "));
+  while(S.xp>=need(S.lvl)){ S.xp-=need(S.lvl); S.lvl++; openPanel("level",unlocksAt(S.lvl)); }
+}
+let bub=null, bubLive=null;
+function openBubble(wx,wy,html,bind){ bub={wx,wy}; bubLive=null; const b=$("#bubble"); b.innerHTML=html; b.hidden=false; bind&&bind(b); placeBubble(); }
+function closeBubble(){ bub=null; bubLive=null; $("#bubble").hidden=true; }
+function placeBubble(){ if(!bub) return; const [sx,sy]=toScreen(bub.wx,bub.wy); const b=$("#bubble"); const w=b.offsetWidth;
+  b.style.left=Math.max(w/2+8,Math.min(W-w/2-8,sx))+"px"; b.style.top=Math.max(b.offsetHeight+24,sy)+"px"; }
+
+let plantMode=null;
+function seedBubble(i){
+  const [x,y]=plotXY(i); const [wx,wy]=iso(x+.5,y+.3);
+  let html=`<div class="sp" style="margin-top:0">Plant a crop</div><div class="row">`;
+  for(const k in CROPS){ const c=CROPS[k]; if(c.lvl>S.lvl) continue;
+    html+=`<button class="seed" data-k="${k}" ${have(k)<=0&&S.coins<c.seed?"disabled":""} aria-label="Plant ${c.name}">${c.icon}<small>${have(k)>0? "×"+have(k) : c.seed+"🪙"}</small></button>`; }
+  openBubble(wx,wy,html+`</div>`,b=>b.querySelectorAll(".seed").forEach(btn=>btn.onclick=()=>{ plantMode=btn.dataset.k; plant(i); closeBubble(); showBanner(); }));
+}
+function plant(i){
+  if(i>=S.plotsOwned || S.plots[i]) return false; const k=plantMode, c=CROPS[k];
+  if(have(k)>0) S.inv[k]--; else if(S.coins>=c.seed) S.coins-=c.seed; else { toast(`Out of ${c.name.toLowerCase()} and coins for seed.`); plantMode=null; showBanner(); return false; }
+  S.plots[i]={crop:k,start:now()}; S.lastCrop[i]=k; save(); return true;
+}
+function harvest(i,sx,sy){
+  const p=S.plots[i]; if(!plotReady(p)) return false; const c=CROPS[p.crop];
+  S.inv[p.crop]=have(p.crop)+2; S.plots[i]=null; gain(c.xp,0); if(sx!=null) floatScreen(sx,sy,`+2 ${c.icon}`); save(); return true;
+}
+function showBanner(){
+  const b=$("#banner"); if(!plantMode){ b.hidden=true; return; }
+  const c=CROPS[plantMode];
+  b.innerHTML=`<span class="big">${c.icon}</span><span>Planting ${c.name.toLowerCase()} (${have(plantMode)} left). Tap or drag across empty plots.</span><button class="btn" id="doneP">Done</button>`;
+  b.hidden=false; $("#doneP").onclick=()=>{ plantMode=null; showBanner(); };
+}
+function feed(a){ const K=KINDS[a.kind]; if(have(K.feed)<=0) return false; S.inv[K.feed]--; a.start=now(); save(); return true; }
+function collect(a,sx,sy){ const K=KINDS[a.kind]; if(!animalReady(a)) return false; let coins=0;
+  for(const [k,v] of Object.entries(K.out)){ if(k==="coins") coins+=v; else S.inv[k]=have(k)+v; }
+  if(!coins) floatScreen(sx,sy-24,Object.entries(K.out).map(([k,v])=>`+${v} ${iconOf(k)}`).join(" "));
+  a.start=null; gain(3,coins,sx,sy); save(); return true; }
+function animalBubble(a){
+  const K=KINDS[a.kind], r=rt(a); const [wx,wy]=iso(r.x,r.y);
+  const render=()=>{
+    let act="";
+    if(a.start===null){ const h=have(K.feed); act=`<div class="info">${K.label? K.label+"<br>":""}Eats ${FEEDS[K.feed].icon} ${FEEDS[K.feed].name} (you have ${h})</div><button class="btn" data-a="feed" ${h?"":"disabled"}>Feed</button>${h?"":`<div class="info" style="margin-top:6px">Make more at the Feed Mill.</div>`}`; }
+    else if(animalReady(a)) act=`<button class="btn gold" data-a="col">Collect</button>`;
+    else { const el=(now()-a.start)/1000; act=`<div class="bar"><i style="width:${el/K.time*100}%"></i></div><div class="info">${K.label?"Out on a ride · ":""}${fmt(K.time-el)} left</div>`; }
+    return `<div class="nm"><span>${esc(a.name)}</span><button class="edit" data-a="ren" aria-label="Rename">✎</button></div><div class="sp">${K.sp}</div>${act}`;
+  };
+  const bind=b=>b.querySelectorAll("[data-a]").forEach(btn=>btn.onclick=()=>{
+    const act=btn.dataset.a;
+    if(act==="feed"){ feed(a); refresh(); }
+    if(act==="col"){ const rc=btn.getBoundingClientRect(); collect(a,rc.left+rc.width/2,rc.top); refresh(); }
+    if(act==="ren"){ bubLive=null; b.innerHTML=`<input id="renIn" maxlength="18" value="${esc(a.name)}" aria-label="New name"><div class="row" style="margin-top:8px"><button class="btn" id="renOk">Save</button></div>`;
+      const i=$("#renIn"); i.focus(); i.select(); const ok=()=>{ const v=i.value.trim(); if(v) a.name=v; save(); refresh(); };
+      $("#renOk").onclick=ok; i.onkeydown=e=>{ if(e.key==="Enter") ok(); if(e.key==="Escape") refresh(); }; }
+  });
+  const refresh=()=>{ if(!bub) return; const b=$("#bubble"); b.innerHTML=render(); bind(b); bubLive=refresh; placeBubble(); };
+  openBubble(wx,wy-K.size-4,render(),bind); bubLive=refresh;
+}
+
+/* ---------- orders ---------- */
+function availableGoods(){
+  const out=[]; for(const k in CROPS) if(CROPS[k].lvl<=S.lvl) out.push(k);
+  for(const a of S.animals) if(alvl(a)<=S.lvl) for(const g of Object.keys(KINDS[a.kind].out)) if(g!=="coins"&&!out.includes(g)) out.push(g);
+  for(const p in PROD){ if(p==="mill"||PROD[p].lvl>S.lvl) continue; for(const r in PROD[p].recipes) if(PROD[p].recipes[r].lvl<=S.lvl) out.push(r); }
+  return out;
+}
+function newOrder(){
+  const pool=availableGoods().sort(()=>Math.random()-.5);
+  const lines=Math.min(pool.length,1+Math.floor(Math.random()*Math.min(3,1+S.lvl/2)));
+  const items={}; let val=0;
+  for(let i=0;i<lines;i++){ const k=pool[i]; const big=VALUE[k]>=20; const q=1+Math.floor(Math.random()*(big?2:2+Math.min(3,S.lvl))); items[k]=q; val+=VALUE[k]*q; }
+  const c=CUSTOMERS[Math.floor(Math.random()*CUSTOMERS.length)];
+  return {who:c[0],note:c[1],items,coins:Math.round(val*1.4+5),xp:Math.max(2,Math.round(val/4)),wait:0};
+}
+function readyOrders(){ return S.orders.filter(o=>!o.wait&&Object.entries(o.items).every(([k,q])=>have(k)>=q)).length; }
+
+/* ---------- panels ---------- */
+let panel=null;
+function openPanel(kind,arg){ closeBubble(); panel={kind,arg}; renderPanel(true); }
+function closePanel(){ panel=null; $("#shade").hidden=true; }
+function renderPanel(){
+  const sh=$("#shade"); if(!panel){ sh.hidden=true; return; }
+  if(sh.contains(document.activeElement) && document.activeElement.tagName==="INPUT") return;
+  const k=panel.kind; let title="", body="";
+  const lockedItem=x=>{ const c=CROPS[x]; if(c) return c.lvl>S.lvl; const [p,R]=recipeOf(x); if(R) return R.lvl>S.lvl||PROD[p].lvl>S.lvl; if(GOODS[x]) return !S.animals.some(a=>alvl(a)<=S.lvl && KINDS[a.kind].out[x]); return false; };
+  if(k==="barn"){
+    title="Barn";
+    const sect=(t,keys)=>{ const ks=keys.filter(x=>!lockedItem(x)); return ks.length? `<div class="sect">${t}</div><div class="inv">${ks.map(x=>`<div class="slot ${have(x)?"":"zero"}"><div class="ic">${iconOf(x)}</div><div class="n">${have(x)}</div><div class="l">${nameOf(x)}</div></div>`).join("")}</div>` : ""; };
+    body=`<p class="psub">Everything you've grown, made and gathered.</p>`+sect("Crops",Object.keys(CROPS))+sect("Feed",Object.keys(FEEDS))+sect("Farm goods",["egg","milk","wool","heart"])+sect("Kitchen goods",["cheese","butter","bread","pie","cobbler","smores","chili"]);
+  }
+  if(k==="prod"){
+    const id=panel.arg, P=PROD[id]; title=P.name; const q=S.prod[id];
+    body=`<p class="psub">${id==="mill"?"Grind crops into animal feed.":"Make goods that customers pay more for."} Holds ${P.slots} batch${P.slots>1?"es":""} at a time.</p><div class="recs">`+
+      Object.entries(P.recipes).map(([key,R])=>{
+        if(R.lvl>S.lvl) return `<div class="rec" style="opacity:.55"><div class="ic">${iconOf(key)}</div><div><b>${nameOf(key)}</b><span class="in">Unlocks at level ${R.lvl}</span></div><span>🔒</span></div>`;
+        const can=Object.entries(R.in).every(([i,n])=>have(i)>=n) && q.length<P.slots;
+        return `<div class="rec"><div class="ic">${iconOf(key)}</div><div><b>${nameOf(key)} ×${R.out}</b><span class="in">${Object.entries(R.in).map(([i,n])=>`${n} ${iconOf(i)} <small>(${have(i)})</small>`).join(" + ")} · ${fmt(R.time)}</span></div><button class="btn" data-make="${key}" ${can?"":"disabled"}>Make</button></div>`; }).join("")+
+      `</div><div class="sect">In progress</div><div class="hopper">`+Array.from({length:P.slots},(_,i)=>{ const j=q[i]; if(!j) return `<div class="hslot">empty</div>`;
+        const R=P.recipes[j.k], left=(j.end-now())/1000;
+        return left<=0? `<button class="hslot done" data-take="${i}"><span class="ic">${iconOf(j.k)}</span>Collect ${R.out}</button>` : `<div class="hslot busy"><span class="ic">${iconOf(j.k)}</span>${fmt(left)}</div>`; }).join("")+`</div>`;
+  }
+  if(k==="orders"){
+    title="Order Board";
+    while(S.orders.length<3) S.orders.push(newOrder());
+    S.orders=S.orders.map(o=>o.wait&&o.wait<=now()? newOrder() : o);
+    body=`<p class="psub">Folks booking rides, parties and suppers out on Grady Rd.</p><div class="grid">`+S.orders.map((o,i)=>{
+      if(o.wait) return `<div class="card waitcard">New customer pulling up the drive…<br>${fmt((o.wait-now())/1000)}</div>`;
+      const ok=Object.entries(o.items).every(([x,q])=>have(x)>=q);
+      return `<div class="card paper"><h4>${o.who}</h4><div class="note">${o.note}</div><div class="need">${Object.entries(o.items).map(([x,q])=>`<span class="chip ${have(x)>=q?"ok":""}">${iconOf(x)} ${have(x)}/${q}</span>`).join("")}</div>
+        <div class="reward"><span>🪙 ${o.coins}</span><span>⭐ ${o.xp}</span></div><div class="acts"><button class="skip" data-skip="${i}">Skip</button><button class="btn" data-del="${i}" ${ok?"":"disabled"}>Deliver</button></div></div>`; }).join("")+`</div>`;
+  }
+  if(k==="roster"){
+    title="Farm Animals";
+    body=`<p class="psub">Every animal on the farm. Tap a name to change it.</p><div class="roster">`+S.animals.map(a=>{ const K=KINDS[a.kind], lv=alvl(a), lk=lv>S.lvl;
+      return `<div class="ra ${lk?"lock":""}"><div class="ic">${K.icon}</div><input id="nm-${a.id}" data-id="${a.id}" maxlength="18" value="${esc(a.name)}" aria-label="${K.sp} name"><small>${K.sp}${lk?` · Lv ${lv}`:""}</small></div>`; }).join("")+
+      `</div><p class="fine">The animal types come from Elsberry Riding &amp; Farm's trail ride and petting zoo listings. Names are placeholders until you rename them.</p><button class="btn red" id="resetBtn" style="margin-top:10px">Start a new farm</button>`;
+  }
+  if(k==="levels"){
+    title="Level Rewards";
+    body=`<p class="psub">The higher you level, the more of the farm opens up.</p><div class="lvls">`+Array.from({length:9},(_,i)=>i+2).map(L=>{ const u=unlocksAt(L); const st=L<=S.lvl?"got":(L===S.lvl+1?"next":"");
+      return `<div class="lv ${st}"><div class="lvn">${L}</div><div class="lvu">${u.map(x=>`<span>${x}</span>`).join("")}</div>${L<=S.lvl?'<div class="tick">✓</div>':""}</div>`; }).join("")+`</div>`;
+  }
+  if(k==="level"){
+    title="Level Up!";
+    body=`<div class="lvlup"><div class="big t-out">${S.lvl}</div><p>${panel.arg.length? "New on the farm:" : "Word about your farm is spreading down Grady Rd."}</p><div class="lvu" style="justify-content:center;margin-bottom:10px">${panel.arg.map(x=>`<span>${x}</span>`).join("")}</div><button class="btn gold" id="lvOk">Yeehaw!</button></div>`;
+  }
+  const keepScroll=sh.querySelector(".pbody")?.scrollTop||0;
+  sh.innerHTML=`<div class="panel" role="dialog" aria-label="${title}"><div class="ribbon t-out">${title}</div><button class="x" aria-label="Close">✕</button><div class="pbody">${body}</div></div>`;
+  sh.hidden=false; sh.querySelector(".pbody").scrollTop=keepScroll;
+  sh.querySelector(".x").onclick=closePanel;
+  sh.onclick=e=>{ if(e.target===sh) closePanel(); };
+  sh.querySelectorAll("[data-make]").forEach(b=>b.onclick=()=>{ const id=panel.arg, R=PROD[id].recipes[b.dataset.make], q=S.prod[id];
+    for(const [i,n] of Object.entries(R.in)) S.inv[i]-=n;
+    const last=q.length? q[q.length-1].end : now(); q.push({k:b.dataset.make,end:Math.max(now(),last)+R.time*1000}); save(); renderPanel(); });
+  sh.querySelectorAll("[data-take]").forEach(b=>b.onclick=()=>{ const id=panel.arg, i=+b.dataset.take, j=S.prod[id][i], R=PROD[id].recipes[j.k];
+    S.inv[j.k]=have(j.k)+R.out; S.prod[id].splice(i,1);
+    const r=b.getBoundingClientRect(); floatScreen(r.left+r.width/2,r.top,`+${R.out} ${iconOf(j.k)}`); gain(R.xp,0); save(); renderPanel(); });
+  sh.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.del, o=S.orders[i]; for(const [x,q] of Object.entries(o.items)) S.inv[x]-=q;
+    const r=b.getBoundingClientRect(); S.orders[i]={wait:now()+8000}; gain(o.xp,o.coins,r.left+r.width/2,r.top); save(); renderPanel(); });
+  sh.querySelectorAll("[data-skip]").forEach(b=>b.onclick=()=>{ S.orders[+b.dataset.skip]={wait:now()+15000}; save(); renderPanel(); });
+  sh.querySelectorAll(".ra input").forEach(inp=>{ inp.onchange=()=>{ const a=S.animals.find(x=>x.id==inp.dataset.id); const v=inp.value.trim(); if(v){ a.name=v; save(); } else inp.value=a.name; };
+    inp.onkeydown=e=>{ if(e.key==="Enter") inp.blur(); }; });
+  const rb=$("#resetBtn"); if(rb) rb.onclick=()=>{ if(rb.dataset.armed){ S=fresh(); for(const x in RT) delete RT[x]; save(); closePanel(); toast("Fresh farm, fresh start."); return; }
+    rb.dataset.armed=1; rb.textContent="Tap again to erase this farm"; };
+  const lo=$("#lvOk"); if(lo) lo.onclick=closePanel;
+}
+document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>{ const v=b.dataset.open; if(v==="mill") openPanel("prod","mill"); else openPanel(v); });
+
+/* ================= INPUT ================= */
+const ptrs=new Map(); let drag=null, pinch=null;
+function plotAt(sx,sy){ const [tx,ty]=toTile(sx,sy); const x=Math.floor(tx), y=Math.floor(ty);
+  for(let bi=0;bi<2;bi++){ const b=BLOCKS[bi]; const rows=b.n/b.cols;
+    if(x>=b.x&&x<b.x+b.cols&&y>=b.y&&y<b.y+rows){ const i=bi*12+(y-b.y)*b.cols+(x-b.x); return zoneOpen(zoneAt(x,y))? i : -1; } }
+  return -1; }
+function hitAt(sx,sy){ const [wx,wy]=toWorld(sx,sy);
+  for(let k=HIT.length-1;k>=0;k--){ const h=HIT[k]; if(h.kind==="animal"&&wx>=h.x0&&wx<=h.x1&&wy>=h.y0&&wy<=h.y1) return h; }
+  for(let k=HIT.length-1;k>=0;k--){ const h=HIT[k]; if(h.kind!=="animal"&&wx>=h.x0&&wx<=h.x1&&wy>=h.y0&&wy<=h.y1) return h; }
+  return null; }
+cv.addEventListener("pointerdown",e=>{
+  cv.setPointerCapture(e.pointerId); ptrs.set(e.pointerId,[e.clientX,e.clientY]);
+  if(ptrs.size===2){ const [a,b]=[...ptrs.values()]; pinch={d:Math.hypot(a[0]-b[0],a[1]-b[1]),z:cam.z}; drag=null; return; }
+  const i=plotAt(e.clientX,e.clientY); let tool=null;
+  if(i>=0 && i<S.plotsOwned){
+    if(plantMode && !S.plots[i]){ tool="plant"; plant(i); showBanner(); }
+    else if(plotReady(S.plots[i])){ tool="sickle"; harvest(i,e.clientX,e.clientY-20); }
+  }
+  drag={x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY,moved:false,tool};
+});
+cv.addEventListener("pointermove",e=>{
+  if(!ptrs.has(e.pointerId)) return; ptrs.set(e.pointerId,[e.clientX,e.clientY]);
+  if(pinch&&ptrs.size===2){ const [a,b]=[...ptrs.values()]; const d=Math.hypot(a[0]-b[0],a[1]-b[1]); zoomAt((a[0]+b[0])/2,(a[1]+b[1])/2,pinch.z*d/pinch.d/cam.z); return; }
+  if(!drag) return;
+  if(drag.tool){ const i=plotAt(e.clientX,e.clientY); if(i>=0&&i<S.plotsOwned){
+      if(drag.tool==="plant"&&!S.plots[i]&&plantMode){ plant(i); showBanner(); }
+      if(drag.tool==="sickle"&&plotReady(S.plots[i])) harvest(i,e.clientX,e.clientY-20); }
+    return; }
+  const dx=e.clientX-drag.x, dy=e.clientY-drag.y;
+  if(!drag.moved && Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)>6){ drag.moved=true; cv.classList.add("dragging"); }
+  if(drag.moved){ cam.x+=dx; cam.y+=dy; clampCam(); }
+  drag.x=e.clientX; drag.y=e.clientY;
+});
+function endPtr(e){
+  ptrs.delete(e.pointerId); if(ptrs.size<2) pinch=null;
+  if(drag&&!drag.moved&&!drag.tool&&ptrs.size===0) tap(e.clientX,e.clientY);
+  if(ptrs.size===0){ drag=null; cv.classList.remove("dragging"); }
+}
+cv.addEventListener("pointerup",endPtr);
+cv.addEventListener("pointercancel",e=>{ ptrs.delete(e.pointerId); drag=null; pinch=null; cv.classList.remove("dragging"); });
+function zoomAt(sx,sy,f){ const z=Math.max(.35,Math.min(1.9,cam.z*f)); cam.x=sx-(sx-cam.x)*z/cam.z; cam.y=sy-(sy-cam.y)*z/cam.z; cam.z=z; clampCam(); }
+cv.addEventListener("wheel",e=>{ e.preventDefault(); zoomAt(e.clientX,e.clientY,Math.exp(-e.deltaY*.0015)); },{passive:false});
+
+function tap(sx,sy){
+  const h=hitAt(sx,sy);
+  if(h&&h.kind==="animal"){ const a=S.animals.find(x=>x.id===h.ref);
+    if(animalReady(a)){ collect(a,sx,sy-20); closeBubble(); return; }
+    if(a.start===null&&feed(a)){ floatScreen(sx,sy-30,`-1 ${FEEDS[KINDS[a.kind].feed].icon}`); closeBubble(); return; }
+    animalBubble(a); return; }
+  const i=plotAt(sx,sy);
+  if(i>=0){
+    const [x,y]=plotXY(i);
+    if(i<S.plotsOwned){ const p=S.plots[i];
+      if(!p){ if(plantMode){ plant(i); showBanner(); } else seedBubble(i); return; }
+      const c=CROPS[p.crop], left=c.time-(now()-p.start)/1000; const [wx,wy]=iso(x+.5,y+.3);
+      openBubble(wx,wy,`<div class="nm">${c.icon} ${c.name}</div><div class="bar"><i style="width:${(1-left/c.time)*100}%"></i></div><div class="info">Ready in ${fmt(left)}</div>`); return; }
+    if(i===S.plotsOwned){ const cost=plotCost(i), lv=PLOT_LVL[i]; const [wx,wy]=iso(x+.5,y+.2);
+      if(S.lvl<lv){ openBubble(wx,wy,`<div class="nm">Overgrown plot</div><div class="info" style="margin-top:6px">Reach level ${lv} to clear this one.</div>`); return; }
+      openBubble(wx,wy,`<div class="nm">Clear this plot?</div><div class="info" style="margin-top:4px">Pull the brush and till new ground.</div><button class="btn gold" id="buyP" ${S.coins>=cost?"":"disabled"}>${cost} 🪙</button>`,
+        b=>b.querySelector("#buyP").onclick=()=>{ S.coins-=cost; S.plotsOwned++; save(); closeBubble(); toast("New plot ready to plant."); }); return; }
+    const [wx,wy]=iso(x+.5,y+.2); openBubble(wx,wy,`<div class="nm">Overgrown plot</div><div class="info" style="margin-top:6px">Clear the plots before this one first.</div>`); return;
+  }
+  if(h){
+    if(plantMode){ plantMode=null; showBanner(); }
+    if(h.kind==="prod") return openPanel("prod",h.ref);
+    if(["barn","orders","roster"].includes(h.kind)) return openPanel(h.kind);
+    if(h.kind==="zone"){ const z=ZONES.find(z=>z.id===h.ref); return toast(`Reach level ${z.lvl} to open ${z.name}.`); }
+    if(h.kind==="site"){ const P=PROD[h.ref]; return toast(`The ${P.name} opens at level ${P.lvl}.`); }
+  }
+  closeBubble(); if(plantMode){ plantMode=null; showBanner(); }
+}
+addEventListener("keydown",e=>{ if(e.key==="Escape"){ closeBubble(); closePanel(); plantMode=null; showBanner(); } });
+
+/* ================= LOOP ================= */
+function hud(){
+  $("#coins").textContent=S.coins; $("#lvl").textContent=S.lvl;
+  $("#xpbar").style.width=Math.min(100,S.xp/need(S.lvl)*100)+"%"; $("#xptxt").textContent=`${S.xp} / ${need(S.lvl)}`;
+  const nx=unlocksAt(S.lvl+1); $("#nextup").textContent = nx.length? `Lv ${S.lvl+1}: ${nx.slice(0,2).join(", ")}${nx.length>2?" +"+(nx.length-2)+" more":""}` : "";
+  while(S.orders.length<3) S.orders.push(newOrder());
+  const ord=readyOrders(); const ob=$("#ordBadge"); ob.hidden=!ord; ob.textContent=ord;
+  let md=0; for(const p in S.prod) md+=S.prod[p].filter(j=>j.end<=now()).length; const mb=$("#millBadge"); mb.hidden=!md; mb.textContent=md;
+}
+let pressing=false;
+addEventListener("pointerdown",()=>pressing=true,true);
+addEventListener("pointerup",()=>setTimeout(()=>pressing=false,60),true);
+addEventListener("pointercancel",()=>pressing=false,true);
+let last=performance.now(), slow=0;
+function frame(t){
+  const dt=Math.min(.1,(t-last)/1000); last=t;
+  stepAnimals(dt); draw(); placeBubble();
+  slow+=dt; if(slow>.5){ slow=0; hud(); if(!pressing){ if(panel && panel.kind!=="levels" && panel.kind!=="level" && panel.kind!=="roster") renderPanel(); if(bubLive&&bub&&!$("#bubble").querySelector("input")) bubLive(); } }
+  requestAnimationFrame(frame);
+}
+hud(); requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
