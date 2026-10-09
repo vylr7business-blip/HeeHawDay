@@ -12,9 +12,18 @@ const DATA_DIR = process.env.DATA_DIR || process.env.RAILWAY_VOLUME_MOUNT_PATH |
 const SAVE_DIR = path.join(DATA_DIR, "saves");
 fs.mkdirSync(SAVE_DIR, { recursive: true });
 
-const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".png": "image/png", ".svg": "image/svg+xml", ".ico": "image/x-icon", ".json": "application/json", ".woff2": "font/woff2" };
+const TYPES = { ".mp4": "video/mp4", ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".png": "image/png", ".svg": "image/svg+xml", ".ico": "image/x-icon", ".json": "application/json", ".woff2": "font/woff2" };
 const ROUTES = { "/": "/index.html", "/docs": "/docs.html", "/guide": "/docs.html" };
 const MAX_SAVE_BYTES = 200 * 1024;
+// Set SITE_LOCKED=1 in Railway to show the "coming soon" page instead of the game (no redeploy needed to flip it).
+// While locked, PREVIEW_KEY lets you in: visit /?preview=<key> once and this browser can play.
+const locked = () => process.env.SITE_LOCKED === "1";
+const LOCKED_ASSETS = new Set(["/coming-soon.html", "/favicon.png", "/favicon.ico", "/apple-touch-icon.png", "/banner.png", "/donkey.svg", "/trailer.mp4"]);
+function hasPreview(req, url) {
+  const key = process.env.PREVIEW_KEY; if (!key) return false;
+  if (url.searchParams.get("preview") === key) return "set";
+  return (req.headers.cookie || "").split(/;\s*/).includes(`hhd_preview=${key}`);
+}
 const TOKEN_DAYS = 30;
 
 /* ---------- secret for session tokens (kept on the volume so logins survive restarts) ---------- */
@@ -131,6 +140,13 @@ async function api(req, res, p, query) {
 http.createServer(async (req, res) => {
   const url = new URL(req.url || "/", "http://localhost");
   let p; try { p = decodeURIComponent(url.pathname); } catch (e) { res.writeHead(400); return res.end(); }
+  const pv = locked() ? hasPreview(req, url) : true;
+  if (pv === "set") res.setHeader("Set-Cookie", `hhd_preview=${process.env.PREVIEW_KEY}; Path=/; Max-Age=2592000; HttpOnly; SameSite=Lax; Secure`);
+  if (locked() && !pv) {
+    if (p === "/api/config") return json(res, 200, { ca: (process.env.COIN_CA || "").trim(), locked: true });
+    if (p.startsWith("/api/")) return json(res, 403, { error: "HeeHawDay is coming soon." });
+    if (!LOCKED_ASSETS.has(p)) p = "/coming-soon.html";
+  }
   if (p.startsWith("/api/")) {
     try { return await api(req, res, p, url.searchParams); }
     catch (e) { console.error(e); return json(res, 500, { error: "Server error." }); }

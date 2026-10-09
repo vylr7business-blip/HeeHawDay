@@ -28,3 +28,10 @@ Set a `COIN_CA` variable on the Railway service and the address shows under the 
 ## Saving with a Solana wallet
 
 Players sign a free message with Phantom, Solflare or Backpack; the server checks the signature and saves their farm under that wallet. Saves live in `DATA_DIR` (the Railway volume mount). Guests can play, but nothing is kept until they connect.
+
+## Coming-soon lock
+
+Set `SITE_LOCKED=1` on the Railway service to show the coming-soon page (with the trailer) instead of the game. Remove it or set it to `0` to open the game; no code change needed.
+While locked, set `PREVIEW_KEY` and open `/?preview=<key>` once to play in that browser.
+
+HeeHaw's art on the coming-soon page (`donkey.svg`) is from Microsoft's Fluent Emoji (MIT License).
