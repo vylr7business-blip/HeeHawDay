@@ -452,7 +452,7 @@ function box(x,y,w,d,h,top,left,right,lw=2.2){
   return {A,B,C,D};
 }
 function gableRoof(x,y,w,d,h,rh,roof,roofDk,gable,o=.18){
-  const A=up(iso(x-o,y),h),B=up(iso(x+w,y),h),C=up(iso(x+w,y+d+o),h),D=up(iso(x-o,y+d+o),h);
+  const A=up(iso(x-o,y),h),B=up(iso(x+w,y),h),C=up(iso(x+w,y+d),h),D=up(iso(x-o,y+d),h);
   const R1=up(iso(x-o,y+d/2),h+rh),R2=up(iso(x+w,y+d/2),h+rh);
   poly([A,B,R2,R1],roofDk);
   poly([up(iso(x+w,y),h),up(iso(x+w,y+d),h),up(iso(x+w,y+d/2),h+rh)],gable);
