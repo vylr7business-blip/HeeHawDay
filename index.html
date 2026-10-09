@@ -230,7 +230,7 @@ const KINDS = {
   puppy:   {sp:"Puppy",         icon:"🐶", sprite:"🐕", feed:"critterMix",  out:{heart:1},  time:30,  lvl:2, size:26, speed:.9},
   horse:   {sp:"Trail Horse",   icon:"🐎", feed:"sweetFeed",   out:{coins:50}, time:90,  lvl:3, size:42, speed:.6, label:"1-hr trail ride, $50"},
   calf:    {sp:"Baby Cow",      icon:"🐮", sprite:"🐄", feed:"barnFeed",    out:{heart:2},  time:70,  lvl:3, size:32, speed:.4},
-  donkey:  {sp:"Baby Donkey",   icon:"🫏", sprite:"🐎", tint:"grayscale(1) brightness(1.08) contrast(.85)", feed:"barnFeed", out:{heart:2}, time:70, lvl:3, size:32, speed:.45},
+  donkey:  {sp:"Donkey",        icon:"🫏", custom:"donkey", feed:"barnFeed", out:{heart:2}, time:70, lvl:1, size:38, speed:.45},
   duckling:{sp:"Duckling",      icon:"🐥", feed:"chickenFeed", out:{heart:1},  time:40,  lvl:4, size:22, speed:.7},
   piglet:  {sp:"Baby Pig",      icon:"🐷", sprite:"🐖", feed:"critterMix",  out:{heart:2},  time:60,  lvl:4, size:28, speed:.55},
   tortoise:{sp:"Giant Tortoise",icon:"🐢", feed:"critterMix",  out:{heart:4},  time:150, lvl:5, size:34, speed:.15},
@@ -242,13 +242,13 @@ const ANIMALS = [
   ["chicken","Henrietta",1],["chicken","Pecky",1],
   ["goat","Goat #1",1],["goat","Goat #2",1],
   ["sheep","Sheep #1",2],
-  ["calf","Baby Cow",3],["donkey","Baby Donkey",3],
+  ["calf","Baby Cow",3],["donkey","HeeHaw",1],
   ["rabbit","Bunny #1",2],["duckling","Duckling #1",4],["puppy","Puppy #1",2],
   ["piglet","Piglet #1",4],["tortoise","Tortoise",5],
   ["horse","Trail Horse #3",6],["horse","Trail Horse #4",8],["pony","Pony #4",6],
   ["chicken","Hen #3",5],["chicken","Hen #4",7],["goat","Goat #3",6],["sheep","Sheep #2",7],
   ["rabbit","Bunny #2",6],["puppy","Puppy #2",8],["piglet","Piglet #2",8],["duckling","Duckling #2",7],
-  ["tortoise","Tortoise #2",10],["calf","Baby Cow #2",9],["donkey","Baby Donkey #2",9],
+  ["tortoise","Tortoise #2",10],["calf","Baby Cow #2",9],["donkey","HeeHaw Jr.",9],
 ];
 const alvl = a => Math.max(KINDS[a.kind].lvl, (ANIMALS[a.id]||[])[2]||1);
 const CUSTOMERS = [
@@ -278,7 +278,8 @@ function plotXY(i){ const b = i<12? BLOCKS[0] : BLOCKS[1]; const j = i<12? i : i
 const plotCost = i => i<12 ? 80*(i-4) : 100*(i-6);
 const PENS = [
   {id:"coop",    name:"Coop",          x:15,y:1, w:4,h:3, ground:"#e8cf7a", ground2:"#dcc06a", kinds:["chicken","duckling"]},
-  {id:"pasture", name:"Pasture",       x:15,y:5, w:6,h:4, ground:"#a6db5a", ground2:"#9bd24f", kinds:["goat","sheep","calf","donkey"]},
+  {id:"pasture", name:"Pasture",       x:15,y:5, w:6,h:4, ground:"#a6db5a", ground2:"#9bd24f", kinds:["goat","sheep","calf"]},
+  {id:"heehaw",  name:"HeeHaw Pen",    x:17,y:11,w:5,h:4, ground:"#f0d27a", ground2:"#e6c66b", kinds:["donkey"], mascot:true},
   {id:"paddock", name:"Riding Paddock",x:2, y:12,w:6,h:6, ground:"#d9ab72", ground2:"#cf9f64", kinds:["horse","pony"]},
   {id:"zoo",     name:"Petting Zoo",   x:10,y:12,w:6,h:5, ground:"#bfe58a", ground2:"#b3dc7c", kinds:["rabbit","puppy","piglet","tortoise"]},
 ];
@@ -292,7 +293,7 @@ const BUILD = {
   bakery: {x:14,y:26,w:3,d:2},
   bonfire:{x:27,y:22,w:2,d:2},
 };
-const BASE_TREES = [[6,1],[0,0],[1,0],[0,2],[0,8],[1,10],[0,14],[0,18],[1,21],[4,22],[7,21],[11,22],[14,21],[21,21],[23,19],[23,14],[22,12],[23,6],[22,2],[20,0],[7,0],[18,11],[9,19],[5,20],[20,22],[12,19]];
+const BASE_TREES = [[6,1],[0,0],[1,0],[0,2],[0,8],[1,10],[0,14],[0,18],[1,21],[4,22],[7,21],[11,22],[14,21],[21,21],[23,19],[23,14],[23,12],[23,6],[22,2],[20,0],[7,0],[9,19],[5,20],[20,22],[12,19]];
 function pathTile(x,y){
   if((y===10 && x<=23) || (x===8 && y<=23) || (y===20 && x>=8 && x<=23)) return true;
   if(S.lvl>=5 && ((y===10 && x>=24) || (x===27 && y>=5 && y<=9))) return true;
@@ -300,7 +301,7 @@ function pathTile(x,y){
   if(S.lvl>=8 && ((y===20 && x>=24 && x<=28) || (x===28 && y>=20 && y<=21) || (x===29 && y>=24 && y<=33))) return true;
   return false;
 }
-const inPond = (x,y) => { const dx=(x+.5-20.2)/2.6, dy=(y+.5-15.5)/2.2; return dx*dx+dy*dy<1; };
+const inPond = (x,y) => { const dx=(x+.5-21)/2.6, dy=(y+.5-17.5)/2.0; return dx*dx+dy*dy<1; };
 function reserved(x,y){
   if(pathTile(x,y)) return true;
   for(const k in BUILD){ const b=BUILD[k]; if(x>=b.x-1&&x<=b.x+b.w&&y>=b.y-1&&y<=b.y+b.d) return true; }
@@ -324,6 +325,8 @@ if(!S.prod) S.prod={mill:S.mill||[],dairy:[],bakery:[],bonfire:[]}; delete S.mil
 for(const p in PROD) if(!S.prod[p]) S.prod[p]=[];
 while(S.plots.length<NPLOTS) S.plots.push(null);
 for(let i=S.animals.length;i<ANIMALS.length;i++) S.animals.push({id:i,kind:ANIMALS[i][0],name:ANIMALS[i][1],start:null});
+if(S.animals[11]&&S.animals[11].name==="Baby Donkey") S.animals[11].name="HeeHaw";
+if(S.animals[30]&&S.animals[30].name==="Baby Donkey #2") S.animals[30].name="HeeHaw Jr.";
 const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} };
 
 const need = l => 15*l*l;
@@ -360,7 +363,7 @@ function clampCam(){
   const nx=Math.max(minX,Math.min(maxX,cx)), ny=Math.max(minY,Math.min(maxY,cy));
   cam.x=W/2-nx*cam.z; cam.y=H/2-ny*cam.z;
 }
-resize(); cam.z=Math.max(.5,Math.min(1.15,W/1150)); centerOn(11,9);
+resize(); cam.z=Math.max(.5,Math.min(1.15,W/1150)); centerOn(12.5,9.5);
 addEventListener("resize",()=>{ resize(); clampCam(); });
 const toWorld=(sx,sy)=>[(sx-cam.x)/cam.z,(sy-cam.y)/cam.z];
 const toScreen=(wx,wy)=>[wx*cam.z+cam.x,wy*cam.z+cam.y];
@@ -450,9 +453,9 @@ function drawGround(){
     poly([iso(z.x,z.y),iso(z.x+z.w,z.y),iso(z.x+z.w,z.y+z.h),iso(z.x,z.y+z.h)],null,"rgba(58,36,20,.35)",3);
   }
   // pond
-  const [px,py]=iso(20.2,15.5);
-  ctx.save(); ctx.beginPath(); ctx.ellipse(px,py,TW*1.75,TH*1.6,0,0,7); ctx.fillStyle="#d9b98a"; ctx.fill(); ctx.strokeStyle=OUT; ctx.lineWidth=2.2; ctx.stroke();
-  ctx.beginPath(); ctx.ellipse(px,py+2,TW*1.55,TH*1.38,0,0,7); ctx.fillStyle="#4fb4e0"; ctx.fill();
+  const [px,py]=iso(21,17.5);
+  ctx.save(); ctx.beginPath(); ctx.ellipse(px,py,TW*1.7,TH*1.45,0,0,7); ctx.fillStyle="#d9b98a"; ctx.fill(); ctx.strokeStyle=OUT; ctx.lineWidth=2.2; ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(px,py+2,TW*1.5,TH*1.25,0,0,7); ctx.fillStyle="#4fb4e0"; ctx.fill();
   ctx.beginPath(); ctx.ellipse(px-20,py-8,TW*.9,TH*.6,0,0,7); ctx.fillStyle="#7ccbec"; ctx.fill();
   const t=now()/900; ctx.strokeStyle="rgba(255,255,255,.7)"; ctx.lineWidth=2;
   for(let k=0;k<3;k++){ ctx.beginPath(); ctx.ellipse(px+40-k*45,py+10-k*6,10+((t+k)%3)*5,4+((t+k)%3)*2,0,0,7); ctx.globalAlpha=1-((t+k)%3)/3; ctx.stroke(); }
@@ -597,6 +600,19 @@ function drawFenceSeg(p,q){
   for(const h of [16,7]){ ctx.beginPath(); ctx.moveTo(p[0],p[1]-h); ctx.lineTo(q[0],q[1]-h); ctx.stroke(); }
   for(const r of [p,q]){ ctx.fillStyle="#fff3d9"; ctx.strokeStyle=OUT; ctx.lineWidth=2; ctx.beginPath(); ctx.rect(r[0]-3.5,r[1]-post,7,post); ctx.fill(); ctx.stroke(); }
 }
+function drawArch(p,q){
+  const h=70; ctx.fillStyle="#8a5528"; ctx.strokeStyle=OUT; ctx.lineWidth=2.2;
+  for(const r of [p,q]){ ctx.beginPath(); ctx.rect(r[0]-4,r[1]-h,8,h); ctx.fill(); ctx.stroke(); }
+  const m=[(p[0]+q[0])/2,(p[1]+q[1])/2-h-8];
+  ctx.save(); ctx.translate(m[0],m[1]); ctx.rotate(Math.atan2(q[1]-p[1],q[0]-p[0]));
+  poly([[-40,-11],[40,-11],[43,9],[-43,9]],"#d2402f"); poly([[-35,-7],[35,-7],[37,5],[-37,5]],null,"#ffe8b0",1.5);
+  label("HEEHAW PEN",0,-1,11,"#fff"); ctx.restore();
+}
+function drawHay(X,Y){
+  for(const [dx,dy] of [[0,0],[26,8],[13,-12]]){ const x=X+dx,y=Y+dy;
+    poly([[x-14,y-4],[x+14,y-4],[x+14,y+8],[x-14,y+8]],"#e9c25a"); poly([[x-14,y-4],[x-6,y-10],[x+22,y-10],[x+14,y-4]],"#f4d77a"); poly([[x+14,y-4],[x+22,y-10],[x+22,y+2],[x+14,y+8]],"#cfa645");
+    ctx.strokeStyle="#a67d26"; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(x-5,y-4); ctx.lineTo(x-5,y+8); ctx.moveTo(x+5,y-4); ctx.lineTo(x+5,y+8); ctx.stroke(); }
+}
 function fenceSegments(pen){
   const segs=[]; const {x,y,w,h}=pen;
   for(let i=0;i<w;i++){ segs.push([[x+i,y],[x+i+1,y]]); if(i!==Math.floor(w/2)) segs.push([[x+i,y+h],[x+i+1,y+h]]); }
@@ -622,15 +638,43 @@ function drawCrop(i){
       ctx.beginPath(); ctx.ellipse(X+s*.5,Y-s*.4,s*.55,s*.28,.6,0,7); ctx.fill(); ctx.stroke(); }
   }
 }
+function drawDonkey(X,Y,s,flip,seed){
+  const G="#9c99a3", GD="#6d6a74", CR="#ece6da";
+  ctx.save(); ctx.translate(X,Y); ctx.scale(flip?-s:s,s); ctx.lineJoin="round"; ctx.lineCap="round";
+  const st=(f)=>{ ctx.fillStyle=f; ctx.fill(); ctx.strokeStyle=OUT; ctx.lineWidth=2/s; ctx.stroke(); };
+  const ell=(x,y,rx,ry,rot,f)=>{ ctx.beginPath(); ctx.ellipse(x,y,rx,ry,rot,0,7); st(f); };
+  // tail
+  ctx.strokeStyle=OUT; ctx.lineWidth=4/s; ctx.beginPath(); ctx.moveTo(16,-20); ctx.quadraticCurveTo(24,-16,22,-8); ctx.stroke();
+  ctx.strokeStyle=GD; ctx.lineWidth=2.2/s; ctx.beginPath(); ctx.moveTo(16,-20); ctx.quadraticCurveTo(24,-16,22,-8); ctx.stroke();
+  ell(22,-7,2.8,4,0,"#3d3a42");
+  // legs
+  for(const lx of [-11,-5,7,13]){ ctx.beginPath(); ctx.rect(lx-2.5,-14,5,13); st(lx===-5||lx===13?GD:G); ctx.beginPath(); ctx.rect(lx-2.8,-3,5.6,3.5); st("#2d2a30"); }
+  // body + belly
+  ell(2,-19,17,9.5,0,G); ell(2,-14.5,10,3.6,0,CR);
+  // neck
+  ctx.beginPath(); ctx.moveTo(-8,-25); ctx.lineTo(-19,-36); ctx.lineTo(-13,-40); ctx.lineTo(-2,-25); ctx.closePath(); st(G);
+  // mane
+  ctx.strokeStyle="#3d3a42"; ctx.lineWidth=3.2/s; ctx.beginPath(); ctx.moveTo(-13,-41); ctx.lineTo(-3,-27); ctx.stroke();
+  // ears (wiggle)
+  const w=Math.sin(now()/380+seed)*.12;
+  for(const [ex,rot] of [[-17,-.25+w],[-12.5,.2-w]]){ ctx.save(); ctx.translate(ex,-44); ctx.rotate(rot); ctx.beginPath(); ctx.ellipse(0,-6,3.2,9,0,0,7); st(G); ctx.beginPath(); ctx.ellipse(0,-6,1.4,6,0,0,7); ctx.fillStyle="#f2b6b6"; ctx.fill(); ctx.restore(); }
+  // head + muzzle
+  ell(-20,-40,8.5,6.5,-.35,G); ell(-27,-36,5.6,4.6,-.2,CR);
+  ctx.fillStyle=OUT; ctx.beginPath(); ctx.arc(-29.5,-36.5,.9,0,7); ctx.fill();
+  ctx.beginPath(); ctx.arc(-19.5,-42,1.6,0,7); ctx.fill(); ctx.fillStyle="#fff"; ctx.beginPath(); ctx.arc(-19.9,-42.6,.6,0,7); ctx.fill();
+  ctx.restore();
+}
 function drawAnimal(a){
   const K=KINDS[a.kind], r=rt(a); const [X,Y]=iso(r.x,r.y);
   const hop=r.wait<=0? Math.abs(Math.sin(now()/150+a.id))*3 : 0;
   shadow(X,Y,K.size*.42);
-  emoji(K.sprite||K.icon,X,Y-hop+K.size*.12,K.size,r.flip,1,K.tint||null);
+  if(K.custom==="donkey") drawDonkey(X,Y-hop,K.size/38*(a.id===11?1.12:.9),r.flip,a.id);
+  else emoji(K.sprite||K.icon,X,Y-hop+K.size*.12,K.size,r.flip,1,K.tint||null);
   hitRect("animal",X-K.size*.55,Y-K.size*1.05,X+K.size*.55,Y+6,a.id);
   const top=Y-K.size-6;
   OVER.push(()=>{
-    label(a.name,X,Y+12,11);
+    label(a.name,X,Y+12,a.id===11?13:11,a.id===11?"#ffe066":"#fff");
+    if(a.kind==="donkey" && (now()+a.id*3100)%9000<1600) label("HEE-HAW!",X+(r.flip?30:-30),top-34,15,"#fff");
     if(animalReady(a)){ const o=Object.entries(K.out)[0]; bubbleIcon(X,top-8,o[0]==="coins"?"🪙":iconOf(o[0]),{bob:true,r:15}); }
     else if(a.start===null) bubbleIcon(X,top-6,FEEDS[K.feed].icon,{r:12,alpha:.75,bg:"#fffbe8"});
     else bubbleIcon(X,top-4,null,{r:9,ring:Math.min(1,(now()-a.start)/1000/K.time),bg:"#fffbe8"});
@@ -667,7 +711,9 @@ function draw(){
     for(const [p,q] of fenceSegments(pen)){ const kk=(p[0]+q[0])/2+(p[1]+q[1])/2; items.push([kk+.02,()=>drawFenceSeg(iso(...p),iso(...q))]); }
     const locked=S.animals.filter(a=>pen.kinds.includes(a.kind) && alvl(a)>S.lvl);
     const [sx,sy]=iso(pen.x+pen.w/2,pen.y+pen.h);
-    items.push([pen.x+pen.y+pen.w+pen.h+.5,()=>{ label(pen.name.toUpperCase(),sx,sy+16,12);
+    if(pen.mascot){ const gx=pen.x+Math.floor(pen.w/2), gy=pen.y+pen.h; items.push([gx+gy+.6,()=>drawArch(iso(gx,gy),iso(gx+1,gy))]);
+      const [hx,hy]=iso(pen.x+.8,pen.y+.8); items.push([pen.x+pen.y+1.6,()=>drawHay(hx,hy)]); }
+    items.push([pen.x+pen.y+pen.w+pen.h+.5,()=>{ if(pen.mascot) label("Home of the farm mascot",sx,sy+16,11,"#ffe066"); else label(pen.name.toUpperCase(),sx,sy+16,12);
       if(locked.length) label(`More animals at Lv ${Math.min(...locked.map(alvl))}`,sx,sy+31,10,"#ffe066"); }]);
   }
   for(const a of S.animals){ if(alvl(a)>S.lvl) continue; const r=rt(a); items.push([r.x+r.y,()=>drawAnimal(a)]); }
