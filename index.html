@@ -624,8 +624,18 @@ function stepAnimals(dt){
 /* ---------- drawing ---------- */
 let HIT=[], OVER=[];
 function hitRect(kind,x0,y0,x1,y1,ref){ HIT.push({kind,ref,x0,y0,x1,y1}); }
+// Tile range covering the screen (with padding so tall trees just below the edge still show).
+function visibleTiles(pad=3){
+  const cs=[[VIEW.x0,VIEW.y0],[VIEW.x1,VIEW.y0],[VIEW.x0,VIEW.y1],[VIEW.x1,VIEW.y1]].map(([wx,wy])=>[wy/TH+wx/TW, wy/TH-wx/TW]);
+  return {x0:Math.floor(Math.min(...cs.map(c=>c[0])))-1, x1:Math.ceil(Math.max(...cs.map(c=>c[0])))+pad,
+          y0:Math.floor(Math.min(...cs.map(c=>c[1])))-1, y1:Math.ceil(Math.max(...cs.map(c=>c[1])))+pad};
+}
+const outside=(x,y)=>x<0||y<0||x>=MAP||y>=MAP;
+// Up close, the land past the map is drawn tile by tile like the locked forest; far out, a matching pattern stands in.
+const OUTER_TILES=()=>cam.z>=.35;
 function drawGround(){
-  for(let y=0;y<MAP;y++) for(let x=0;x<MAP;x++){
+  const R=visibleTiles();
+  for(let y=Math.max(0,R.y0);y<=Math.min(MAP-1,R.y1);y++) for(let x=Math.max(0,R.x0);x<=Math.min(MAP-1,R.x1);x++){
     { const [cx,cy]=iso(x+.5,y+.5); if(!inView(cx,cy,60)) continue; }
     const z=zoneAt(x,y), open=zoneOpen(z);
     // soft, organic patches instead of a checkerboard
@@ -681,7 +691,9 @@ function drawGround(){
   }
 }
 function drawTree(x,y,dark){
-  const [X,Y]=iso(x+.5,y+.5); const s=.85+hash(x,y)*.4;
+  const [X,Y]=iso(x+.5,y+.5);
+  if(dark){ const sp=treeSprite(hash(x,y)); ctx.drawImage(sp.c,X-sp.ox,Y-sp.oy,sp.w,sp.h); return; }
+  const s=.85+hash(x,y)*.4;
   if(cam.z<.4){ ctx.fillStyle=dark?"#3a7d22":"#46a02a"; ctx.strokeStyle=OUT; ctx.lineWidth=2.5; ctx.beginPath(); ctx.arc(X,Y-44*s,28*s,0,7); ctx.fill(); ctx.stroke(); return; }
   shadow(X,Y,26*s);
   ctx.fillStyle="#7a4b28"; ctx.strokeStyle=OUT; ctx.lineWidth=2.2; ctx.beginPath(); ctx.rect(X-5*s,Y-26*s,10*s,26*s); ctx.fill(); ctx.stroke();
@@ -982,25 +994,36 @@ function zoneTrees(){
   zoneTreeCache=out; zoneTreeLvl=S.lvl; return out;
 }
 // Forest canopy that fills everything beyond the map, drawn as a repeating pattern in world space.
-let FOREST=null;
-function forestPattern(){
-  if(FOREST) return FOREST;
-  const PW=720, PH=360, c=document.createElement("canvas"); c.width=PW; c.height=PH; const g=c.getContext("2d");
-  g.fillStyle="#4a8729"; g.fillRect(0,0,PW,PH);
-  let r=7; const rnd=()=>{ r=(r*16807)%2147483647; return r/2147483647; };
-  for(let i=0;i<260;i++){ g.fillStyle=rnd()<.5?"rgba(30,70,15,.18)":"rgba(120,190,70,.14)"; g.beginPath(); g.ellipse(rnd()*PW,rnd()*PH,3+rnd()*6,2+rnd()*3,0,0,7); g.fill(); }
-  // jittered grid so canopies spread evenly without obvious rows
-  const trees=[]; for(let gy=0;gy<5;gy++) for(let gx=0;gx<6;gx++) if(rnd()<.62) trees.push([(gx+.15+rnd()*.7)*PW/6+(gy%2)*PW/12,(gy+.15+rnd()*.7)*PH/5,.85+rnd()*.5]);
-  trees.sort((a,b)=>a[1]-b[1]);
-  const blobs=[[0,-18,24],[-17,-6,18],[17,-6,18],[0,-34,17]];
-  for(const [tx,ty,sc] of trees) for(const ox of [-PW,0,PW]) for(const oy of [-PH,0,PH]){
-    const X=tx+ox, Y=ty+oy;
-    g.fillStyle="rgba(25,60,12,.28)"; g.beginPath(); g.ellipse(X+6,Y+8,30*sc,12*sc,0,0,7); g.fill();
-    g.lineWidth=2; g.strokeStyle="rgba(40,70,20,.7)";
-    for(const [dx,dy,rr] of blobs){ g.beginPath(); g.arc(X+dx*sc,Y+dy*sc,rr*sc,0,7); g.fillStyle="#3f7f24"; g.fill(); g.stroke(); }
-    for(const [dx,dy,rr] of blobs){ g.beginPath(); g.arc(X+(dx-4)*sc,Y+(dy-5)*sc,rr*sc*.5,0,7); g.fillStyle="#4c8f2c"; g.fill(); }
+let FOREST={};
+function forestPattern(withTrees){
+  const key=withTrees?"t":"g"; if(FOREST[key]) return FOREST[key];
+  const N=6, PW=TW*N, PH=TH*N, c=document.createElement("canvas"); c.width=PW; c.height=PH; const g=c.getContext("2d");
+  g.fillStyle="#5a9430"; g.fillRect(0,0,PW,PH);
+  const dia=(cx,cy,col)=>{ g.beginPath(); g.moveTo(cx,cy-TH/2); g.lineTo(cx+TW/2,cy); g.lineTo(cx,cy+TH/2); g.lineTo(cx-TW/2,cy); g.closePath(); g.fillStyle=col; g.fill(); g.strokeStyle=col; g.lineWidth=1.2; g.stroke(); };
+  let r=11; const rnd=()=>{ r=(r*16807)%2147483647; return r/2147483647; };
+  // tile centres match the map: (72a, 36b+18) and (72a+36, 36b)
+  for(let j=0;j<=N*2;j++) for(let i=0;i<=N;i++){ const cx=i*TW+(j%2?TW/2:0), cy=j*TH/2+TH/2; if(rnd()<.45) for(const ox of [0,-PW,PW]) for(const oy of [0,-PH,PH]) dia(cx+ox,cy+oy,"#5f9b33"); }
+  if(withTrees){
+    const inst=[]; for(let b=0;b<N;b++) for(let a=0;a<N;a++) if(rnd()<.5){ const sc=rnd(); for(const ox of [-PW,0,PW]) for(const oy of [-PH,0,PH]) inst.push([a*TW+ox,b*TH+TH/2+oy,sc]); }
+    inst.sort((p,q)=>p[1]-q[1]);
+    for(const [X,Y,sc] of inst){ if(X<-80||X>PW+80||Y<-10||Y>PH+100) continue; const sp=treeSprite(sc); g.drawImage(sp.c,X-sp.ox,Y-sp.oy,sp.w,sp.h); }
   }
-  FOREST=ctx.createPattern(c,"repeat"); return FOREST;
+  FOREST[key]=ctx.createPattern(c,"repeat"); return FOREST[key];
+}
+// Forest trees don't sway, so each size is drawn once to an image and reused (much faster).
+const TREE_SPR={};
+function treeSprite(h){
+  const k=Math.round(h*7); if(TREE_SPR[k]) return TREE_SPR[k];
+  const s=.85+(k/7)*.4, Q=2.5, ow=48*s, oh=82*s, w=96*s, hgt=96*s;
+  const c=document.createElement("canvas"); c.width=Math.ceil(w*Q); c.height=Math.ceil(hgt*Q); const g=c.getContext("2d");
+  g.scale(Q,Q); g.translate(ow,oh);
+  g.fillStyle="rgba(40,60,10,.28)"; g.beginPath(); g.ellipse(0,0,26*s,11.7*s,0,0,7); g.fill();
+  g.lineWidth=2.2; g.strokeStyle=OUT; g.lineJoin="round";
+  g.fillStyle="#7a4b28"; g.beginPath(); g.rect(-5*s,-26*s,10*s,26*s); g.fill(); g.stroke();
+  const blobs=[[0,-46,24],[-16,-34,18],[16,-34,18],[0,-62,17]];
+  for(const [dx,dy,r] of blobs){ g.beginPath(); g.arc(dx*s,dy*s,r*s,0,7); g.fillStyle="#3a7d22"; g.fill(); g.stroke(); }
+  for(const [dx,dy,r] of blobs){ g.beginPath(); g.arc(dx*s-4*s,dy*s-5*s,r*s*.5,0,7); g.fillStyle="#4f9a2e"; g.fill(); }
+  return TREE_SPR[k]={c,ox:ow,oy:oh,w,h:hgt};
 }
 // Only draw what's on screen (the map is big).
 let VIEW={x0:-1e9,y0:-1e9,x1:1e9,y1:1e9};
@@ -1009,9 +1032,7 @@ function draw(){
   ctx.setTransform(DPR,0,0,DPR,0,0); ctx.fillStyle="#5f9b33"; ctx.fillRect(0,0,W,H);
   ctx.setTransform(DPR*cam.z,0,0,DPR*cam.z,DPR*cam.x,DPR*cam.y);
   { const [ax,ay]=toWorld(0,0), [bx,by]=toWorld(W,H); VIEW={x0:ax,y0:ay,x1:bx,y1:by}; }
-  ctx.fillStyle=forestPattern(); ctx.fillRect(VIEW.x0-20,VIEW.y0-20,VIEW.x1-VIEW.x0+40,VIEW.y1-VIEW.y0+40);
-  // soft dark rim where the land meets the outer forest
-  poly([iso(0,0),iso(MAP,0),iso(MAP,MAP),iso(0,MAP)],null,"rgba(30,60,12,.55)",10);
+  ctx.fillStyle=forestPattern(!OUTER_TILES()); ctx.fillRect(VIEW.x0-20,VIEW.y0-20,VIEW.x1-VIEW.x0+40,VIEW.y1-VIEW.y0+40);
   { ctx.save(); ctx.setTransform(DPR,0,0,DPR,0,0); const vg=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*.35,W/2,H/2,Math.max(W,H)*.75);
     vg.addColorStop(0,"rgba(20,45,10,0)"); vg.addColorStop(1,"rgba(20,45,10,.35)"); ctx.fillStyle=vg; ctx.fillRect(0,0,W,H); ctx.restore(); }
   HIT=[]; OVER=[];
@@ -1021,6 +1042,11 @@ function draw(){
   const tv=(x,y)=>{ const [X,Y]=iso(x+.5,y+.5); return inView(X,Y); };
   for(const [x,y] of BASE_TREES) if(tv(x,y)) items.push([x+y+1.2,()=>drawTree(x,y,false)]);
   for(const [x,y,d] of zoneTrees()) if(tv(x,y)) items.push([x+y+1.2,()=>drawTree(x,y,d)]);
+  if(OUTER_TILES()){ const R=visibleTiles();
+    for(let y=R.y0;y<=R.y1;y++) for(let x=R.x0;x<=R.x1;x++){
+      if(!outside(x,y) || (x+y)%2!==0 || hash(x*3+1,y*7+2)<=.5 || !tv(x,y)) continue;
+      items.push([x+y+1.2,()=>drawTree(x,y,true)]);
+    } }
   const B=BUILD, k=b=>b.x+b.w+b.y+b.d-.5;
   items.push([GIFT.x+GIFT.y+1,drawGift]);
   items.push([k(B.barn),drawBarn],[B.silo.x+B.silo.y+1.4,drawSilo],[k(B.mill),drawMill],[k(B.house)+.2,drawHouse],[B.board.x+B.board.y+1.1,drawBoard]);
