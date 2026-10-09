@@ -23,3 +23,7 @@ Set a `COIN_CA` variable on the Railway service and the address shows under the 
 ## Editing the game
 
 `game.html` is the single-file game. After changing it, run `python3 build.py` to regenerate `index.html`. The player guide is `docs.html` (served at `/docs`).
+
+## Logo and banner
+
+Open `/brand` on the live site to download the X profile picture (1000×1000) and header (1500×500). The header is drawn from a staged view of the farm, so it updates whenever the game art changes.

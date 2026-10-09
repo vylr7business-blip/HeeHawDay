@@ -149,6 +149,7 @@ button:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:2
 @keyframes up{to{margin-top:-50px;opacity:0}}
 .lvlup{text-align:center}
 .lvlup .big{font-family:var(--display);font-size:54px;color:var(--gold);line-height:1;font-weight:400}
+html.brand #hud,html.brand #dock,html.brand #hint,html.brand #banner,html.brand #bubble,html.brand #shade{display:none!important}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 
@@ -330,7 +331,17 @@ while(S.plots.length<NPLOTS) S.plots.push(null);
 for(let i=S.animals.length;i<ANIMALS.length;i++) S.animals.push({id:i,kind:ANIMALS[i][0],name:ANIMALS[i][1],start:null});
 if(S.animals[11]&&S.animals[11].name==="Baby Donkey") S.animals[11].name="HeeHaw";
 if(S.animals[30]&&S.animals[30].name==="Baby Donkey #2") S.animals[30].name="HeeHaw Jr.";
-const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} };
+// ?brand renders a staged showcase farm (used by the logo/banner page); it never touches the player's save.
+const SHOWCASE = /[?&]brand\b/.test(location.search);
+if(SHOWCASE){
+  const t=Date.now(), long=1e7, crops=["wheat","corn","carrot","pumpkin","peach"];
+  S=fresh(); S.lvl=9; S.coins=4820; S.xp=640;
+  S.plots=S.plots.map((_,i)=>({crop:crops[(i*7+Math.floor(i/6))%5], start: i%4===3 ? t-5000 : t-long}));
+  S.animals.forEach((a,i)=>{ a.start = i%3===1 ? null : t-long; });
+  S.prod.mill=[{k:"barnFeed",end:t-1000}];
+  document.documentElement.classList.add("brand");
+}
+const save = () => { if(SHOWCASE) return; try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} };
 
 const need = l => 15*l*l;
 const fmt = s => { s=Math.max(0,Math.ceil(s)); const m=Math.floor(s/60); return m? `${m}m ${String(s%60).padStart(2,"0")}s` : `${s}s`; };
@@ -367,6 +378,7 @@ function clampCam(){
   cam.x=W/2-nx*cam.z; cam.y=H/2-ny*cam.z;
 }
 resize(); cam.z=Math.max(.5,Math.min(1.15,W/1150)); centerOn(12.5,9.5);
+if(SHOWCASE){ const q=new URLSearchParams(location.search); cam.z=+(q.get("z")||1); centerOn(+(q.get("cx")||13),+(q.get("cy")||10)); }
 addEventListener("resize",()=>{ resize(); clampCam(); });
 const toWorld=(sx,sy)=>[(sx-cam.x)/cam.z,(sy-cam.y)/cam.z];
 const toScreen=(wx,wy)=>[wx*cam.z+cam.x,wy*cam.z+cam.y];

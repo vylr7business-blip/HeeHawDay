@@ -6,7 +6,7 @@ const path = require("path");
 const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".png": "image/png", ".svg": "image/svg+xml", ".ico": "image/x-icon", ".json": "application/json" };
-const ROUTES = { "/": "/index.html", "/docs": "/docs.html", "/guide": "/docs.html" };
+const ROUTES = { "/": "/index.html", "/docs": "/docs.html", "/guide": "/docs.html", "/brand": "/brand.html" };
 
 http.createServer((req, res) => {
   let p = decodeURIComponent((req.url || "/").split("?")[0]);
