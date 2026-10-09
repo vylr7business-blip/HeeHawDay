@@ -53,6 +53,20 @@ button:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:2
 .help ul{margin:0 0 10px;padding-left:20px;line-height:1.45}
 .help li{margin-bottom:4px}
 .help a{color:var(--red-dk);font-weight:700}
+.guide{align-self:flex-start;margin:2px 0 0 10px;height:34px;display:flex;align-items:center;gap:5px;padding:0 12px 0 9px;border-radius:17px;background:var(--cream);border:3px solid var(--ink);box-shadow:0 3px 0 var(--ink);text-decoration:none;color:var(--ink);font-family:var(--display);font-size:15px;font-weight:400;pointer-events:auto}
+.guide:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+.guestnote{display:block;margin:5px 0 0 -6px;background:#fff1c9;border:2px solid var(--ink);border-radius:10px;padding:2px 9px;font-size:12px;color:var(--ink);box-shadow:0 2px 0 var(--ink);pointer-events:auto}
+.wallet{margin-top:8px;height:38px;display:flex;align-items:center;gap:6px;padding:0 14px;border-radius:19px;border:3px solid var(--ink);box-shadow:0 3px 0 var(--ink);background:linear-gradient(#b48cff,#7b4fe0);color:#fff;font-family:var(--display);font-weight:400;font-size:15px;text-shadow:0 1px 0 rgba(0,0,0,.35);white-space:nowrap}
+.wallet:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+.wallet:disabled{opacity:.7;cursor:wait}
+.wallet.on{background:var(--cream);color:var(--ink);text-shadow:none}
+.wallet .dot{width:10px;height:10px;border-radius:50%;background:#3fbf3f;border:2px solid var(--ink)}
+.wallet small{font-family:var(--body);font-size:11px;color:#7d5a3a}
+.wallet small[data-st="error"]{color:var(--red-dk)}
+.wallet .short{display:none}
+.ca.soon span{color:#8a6440;font-style:italic}
+.ca.soon i{display:none}
+@media (max-width:640px){.guide span{display:none}.guide{padding:0 9px}.wallet .long{display:none}.wallet .short{display:inline}.wallet small{display:none}.guestnote{font-size:11px;max-width:150px;text-align:left}}
 .title{display:flex;flex-direction:column;align-items:center;min-width:0;font-family:var(--display);color:#fff;font-size:clamp(22px,4.4vw,40px);letter-spacing:.5px;font-weight:400;line-height:1;text-align:center;padding-top:6px;pointer-events:none!important}
 .title small{display:block;font-family:var(--body);font-size:11px;letter-spacing:2px;text-transform:uppercase;text-shadow:0 1px 0 var(--ink);margin-top:4px}
 @media (max-width:560px){.title{font-size:22px;padding-top:14px}.xp{width:90px}}
@@ -158,10 +172,11 @@ html.brand #hud,html.brand #dock,html.brand #hint,html.brand #banner,html.brand 
 <div id="hud">
   <div class="lvlbox">
     <div class="star"><svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 6l12.6 27.4 29.9 3.3-22.4 20.1 6.3 29.5L50 71.4 23.6 86.3l6.3-29.5L7.5 36.7l29.9-3.3z" fill="#ffc531" stroke="#3a2414" stroke-width="7" stroke-linejoin="round"/></svg><b class="t-out" id="lvl">1</b></div>
-    <div><div class="xp"><i id="xpbar"></i><span class="t-out" id="xptxt">0/15</span></div><div class="nextup" id="nextup"></div></div>
+    <div><div class="xp"><i id="xpbar"></i><span class="t-out" id="xptxt">0/15</span></div><div class="nextup" id="nextup"></div><button class="guestnote" id="guestNote" hidden>Guest farm · connect a wallet to save</button></div>
+    <a class="guide" id="guideBtn" href="https://heehawday-production.up.railway.app/docs" target="_blank" rel="noopener" aria-label="Game guide">📖<span>Guide</span></a>
   </div>
   <div class="title"><div class="t-out">HeeHawDay</div><button class="ca" id="ca" hidden aria-label="Copy contract address"><b>CA</b><span class="full" id="caFull"></span><span class="short" id="caShort"></span><i>⧉</i></button></div>
-  <div class="right"><a class="xlink" href="https://x.com/HeeHawDay" target="_blank" rel="noopener" aria-label="HeeHawDay on X"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M17.75 3h3.07l-6.7 7.66L22 21h-6.17l-4.83-6.32L5.47 21H2.4l7.17-8.2L2 3h6.33l4.37 5.77L17.75 3zm-1.08 16.17h1.7L7.4 4.74H5.58l11.09 14.43z"/></svg></a><div class="coins"><div class="coin">$</div><b class="t-out" id="coins">0</b></div></div>
+  <div class="right"><button class="wallet" id="walletBtn" hidden>Connect wallet</button><a class="xlink" href="https://x.com/HeeHawDay" target="_blank" rel="noopener" aria-label="HeeHawDay on X"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M17.75 3h3.07l-6.7 7.66L22 21h-6.17l-4.83-6.32L5.47 21H2.4l7.17-8.2L2 3h6.33l4.37 5.77L17.75 3zm-1.08 16.17h1.7L7.4 4.74H5.58l11.09 14.43z"/></svg></a><div class="coins"><div class="coin">$</div><b class="t-out" id="coins">0</b></div></div>
 </div>
 
 <div id="hint">Drag to look around · scroll or pinch to zoom · tap fields, animals and buildings</div>
@@ -322,15 +337,22 @@ function fresh(){
     plots:Array(NPLOTS).fill(null), prod:{mill:[],dairy:[],bakery:[],bonfire:[]},
     animals:ANIMALS.map(([k,n],i)=>({id:i,kind:k,name:n,start:null})), orders:[] };
 }
+// Bring any saved farm (older versions included) up to the current shape.
+function normalize(st){
+  if(!st || typeof st!=="object" || !st.inv || !Array.isArray(st.animals) || typeof st.lvl!=="number") return fresh();
+  delete st.savedAt;
+  if(!st.prod) st.prod={mill:st.mill||[],dairy:[],bakery:[],bonfire:[]}; delete st.mill;
+  for(const p in PROD) if(!Array.isArray(st.prod[p])) st.prod[p]=[];
+  if(!Array.isArray(st.plots)) st.plots=[];
+  while(st.plots.length<NPLOTS) st.plots.push(null);
+  for(let i=st.animals.length;i<ANIMALS.length;i++) st.animals.push({id:i,kind:ANIMALS[i][0],name:ANIMALS[i][1],start:null});
+  if(st.animals[11]&&st.animals[11].name==="Baby Donkey") st.animals[11].name="HeeHaw";
+  if(st.animals[30]&&st.animals[30].name==="Baby Donkey #2") st.animals[30].name="HeeHaw Jr.";
+  if(!Array.isArray(st.orders)) st.orders=[]; if(!st.lastCrop) st.lastCrop={};
+  return st;
+}
 let S; try{ S = JSON.parse(localStorage.getItem(KEY)); }catch(e){ S = null; }
-if(!S || !S.inv || !Array.isArray(S.animals)) S = fresh();
-// migrate older saves
-if(!S.prod) S.prod={mill:S.mill||[],dairy:[],bakery:[],bonfire:[]}; delete S.mill;
-for(const p in PROD) if(!S.prod[p]) S.prod[p]=[];
-while(S.plots.length<NPLOTS) S.plots.push(null);
-for(let i=S.animals.length;i<ANIMALS.length;i++) S.animals.push({id:i,kind:ANIMALS[i][0],name:ANIMALS[i][1],start:null});
-if(S.animals[11]&&S.animals[11].name==="Baby Donkey") S.animals[11].name="HeeHaw";
-if(S.animals[30]&&S.animals[30].name==="Baby Donkey #2") S.animals[30].name="HeeHaw Jr.";
+S = normalize(S);
 // ?brand renders a staged showcase farm (used by the logo/banner page); it never touches the player's save.
 const SHOWCASE = /[?&]brand\b/.test(location.search);
 if(SHOWCASE){
@@ -341,7 +363,17 @@ if(SHOWCASE){
   S.prod.mill=[{k:"barnFeed",end:t-1000}];
   document.documentElement.classList.add("brand");
 }
-const save = () => { if(SHOWCASE) return; try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} };
+/* ---------- saving ----------
+   On the live site, progress saves to the server under the player's Solana wallet.
+   Guests can play, but nothing is kept until they connect. Where there's no server
+   (e.g. a static preview), the game falls back to saving in this browser. */
+const SESSION_KEY="heehawday-session";
+const NET={mode:"pending", wallet:null, token:null, dirty:false, t:0};
+const save = () => {
+  if(SHOWCASE) return;
+  if(NET.mode==="local"){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} return; }
+  if(NET.mode==="wallet"){ NET.dirty=true; clearTimeout(NET.t); NET.t=setTimeout(flushSave,2500); setSaveState("pending"); }
+};
 
 const need = l => 15*l*l;
 const fmt = s => { s=Math.max(0,Math.ceil(s)); const m=Math.floor(s/60); return m? `${m}m ${String(s%60).padStart(2,"0")}s` : `${s}s`; };
@@ -736,7 +768,7 @@ function gain(xp,coins,sx,sy){
 let bub=null, bubLive=null;
 function openBubble(wx,wy,html,bind){ bub={wx,wy}; bubLive=null; const b=$("#bubble"); b.innerHTML=html; b.hidden=false; bind&&bind(b); placeBubble(); }
 function closeBubble(){ bub=null; bubLive=null; $("#bubble").hidden=true; }
-function placeBubble(){ if(!bub) return; const [sx,sy]=toScreen(bub.wx,bub.wy); const b=$("#bubble"); const w=b.offsetWidth;
+function placeBubble(){ if(!bub) return; if(bub.place) return bub.place(); const [sx,sy]=toScreen(bub.wx,bub.wy); const b=$("#bubble"); const w=b.offsetWidth;
   b.style.left=Math.max(w/2+8,Math.min(W-w/2-8,sx))+"px"; b.style.top=Math.max(b.offsetHeight+24,sy)+"px"; }
 
 let plantMode=null;
@@ -860,6 +892,15 @@ function renderPanel(){
       <div class="sect">Orders and levels</div><ul><li>Fill orders on the Order Board for coins and stars. A red badge means one is ready.</li><li>Stars level you up. Higher levels open new land, buildings, crops and animals. See the Levels button for the full list.</li></ul>
       <p><a href="${"https://heehawday-production.up.railway.app/docs.html"}" target="_blank" rel="noopener">Read the full game guide</a></p></div>`;
   }
+  if(k==="wallet"){
+    title="Connect a Wallet";
+    const here=encodeURIComponent(location.href), ref=encodeURIComponent(location.origin);
+    body=`<div class="help"><p class="psub">Your farm saves to your Solana wallet. Signing in is free and never sends a transaction.</p>
+      <div class="sect">On a phone</div><p>Open HeeHawDay inside your wallet app's browser:</p>
+      <div class="row" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"><a class="btn" href="https://phantom.app/ul/browse/${here}?ref=${ref}">Open in Phantom</a><a class="btn gold" href="https://solflare.com/ul/v1/browse/${here}?ref=${ref}">Open in Solflare</a></div>
+      <div class="sect">On a computer</div><p>Install a Solana wallet extension, then reload this page and press Connect wallet.</p>
+      <ul><li><a href="https://phantom.app/download" target="_blank" rel="noopener">Phantom</a></li><li><a href="https://solflare.com/download" target="_blank" rel="noopener">Solflare</a></li><li><a href="https://backpack.app/download" target="_blank" rel="noopener">Backpack</a></li></ul></div>`;
+  }
   if(k==="level"){
     title="Level Up!";
     body=`<div class="lvlup"><div class="big t-out">${S.lvl}</div><p>${panel.arg.length? "New on the farm:" : "Word about your farm is spreading down Grady Rd."}</p><div class="lvu" style="justify-content:center;margin-bottom:10px">${panel.arg.map(x=>`<span>${x}</span>`).join("")}</div><button class="btn gold" id="lvOk">Yeehaw!</button></div>`;
@@ -972,19 +1013,111 @@ let last=performance.now(), slow=0;
 function frame(t){
   const dt=Math.min(.1,(t-last)/1000); last=t;
   stepAnimals(dt); draw(); placeBubble();
-  slow+=dt; if(slow>.5){ slow=0; hud(); if(!pressing){ if(panel && !["levels","level","roster","help"].includes(panel.kind)) renderPanel(); if(bubLive&&bub&&!$("#bubble").querySelector("input")) bubLive(); } }
+  slow+=dt; if(slow>.5){ slow=0; hud(); if(!pressing){ if(panel && !["levels","level","roster","help","wallet"].includes(panel.kind)) renderPanel(); if(bubLive&&bub&&!$("#bubble").querySelector("input")) bubLive(); } }
   requestAnimationFrame(frame);
 }
 /* ---------- coin contract address (set on the server) ---------- */
 function showCA(ca){
-  const b=$("#ca"); ca=(ca||"").trim(); if(!ca){ b.hidden=true; return; }
-  $("#caFull").textContent=ca; $("#caShort").textContent=ca.length>14? ca.slice(0,6)+"…"+ca.slice(-6) : ca; b.title=ca; b.hidden=false;
-  b.onclick=()=>{ const done=()=>toast("Contract address copied"); 
+  const b=$("#ca"); ca=(ca||"").trim(); b.hidden=false;
+  if(!ca){ $("#caFull").textContent="coming soon"; $("#caShort").textContent="coming soon"; b.title=""; b.classList.add("soon"); b.onclick=()=>toast("The contract address will show here at launch."); return; }
+  b.classList.remove("soon");
+  $("#caFull").textContent=ca; $("#caShort").textContent=ca.length>14? ca.slice(0,6)+"…"+ca.slice(-6) : ca; b.title=ca;
+  b.onclick=()=>{ const done=()=>toast("Contract address copied");
     try{ navigator.clipboard.writeText(ca).then(done,()=>fallbackCopy(ca,done)); }catch(e){ fallbackCopy(ca,done); } };
 }
 function fallbackCopy(t,done){ const ta=document.createElement("textarea"); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand("copy"); done(); }catch(e){ toast(t); } ta.remove(); }
-function loadCA(){ fetch("/api/config",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(c=>{ if(c) showCA(c.ca); }).catch(()=>{}); }
-loadCA(); setInterval(loadCA,60000);
+showCA("");
+
+/* ---------- Solana wallet: sign in to save ---------- */
+const shortAddr=a=>a.slice(0,4)+"…"+a.slice(-4);
+function walletProvider(){ return (window.phantom&&window.phantom.solana) || window.solflare || (window.backpack&&window.backpack.solana) || window.solana || null; }
+function setSaveState(st){ const el=$("#saveState"); if(!el) return; el.dataset.st=st; el.textContent={pending:"Saving…",saving:"Saving…",saved:"Saved",error:"Not saved, retrying"}[st]||""; }
+function renderWallet(){
+  const b=$("#walletBtn"), note=$("#guestNote");
+  if(NET.mode==="local"||NET.mode==="pending"){ b.hidden=true; note.hidden=true; return; }
+  b.hidden=false;
+  if(NET.mode==="wallet"){ b.classList.add("on"); b.innerHTML=`<i class="dot"></i><span>${shortAddr(NET.wallet)}</span><small id="saveState"></small>`; note.hidden=true; setSaveState(NET.dirty?"pending":"saved"); }
+  else { b.classList.remove("on"); b.innerHTML=`<span class="long">Connect wallet</span><span class="short">Connect</span>`; note.hidden=false; }
+}
+function loadState(st){
+  S=normalize(st); for(const k in RT) delete RT[k]; zoneTreeLvl=-1;
+  closeBubble(); closePanel(); plantMode=null; showBanner(); hud();
+}
+async function flushSave(){
+  if(NET.mode!=="wallet"||!NET.token) return;
+  clearTimeout(NET.t); NET.dirty=false; setSaveState("saving");
+  try{
+    const r=await fetch("/api/save",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+NET.token},body:JSON.stringify({state:S})});
+    if(r.status===401){ sessionEnded("Your sign-in expired. Connect your wallet again to keep saving."); return; }
+    if(!r.ok) throw new Error();
+    if(!NET.dirty) setSaveState("saved");
+  }catch(e){ NET.dirty=true; setSaveState("error"); clearTimeout(NET.t); NET.t=setTimeout(flushSave,8000); }
+}
+function beaconSave(){
+  if(NET.mode==="wallet"&&NET.dirty&&navigator.sendBeacon){
+    try{ navigator.sendBeacon("/api/save",new Blob([JSON.stringify({token:NET.token,state:S})],{type:"application/json"})); NET.dirty=false; }catch(e){}
+  }
+}
+addEventListener("pagehide",beaconSave);
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="hidden") beaconSave(); });
+function sessionEnded(msg){
+  try{ localStorage.removeItem(SESSION_KEY); }catch(e){}
+  NET.mode="guest"; NET.wallet=null; NET.token=null; NET.dirty=false; renderWallet(); if(msg) toast(msg);
+}
+const toB64=u8=>{ let s=""; for(let i=0;i<u8.length;i++) s+=String.fromCharCode(u8[i]); return btoa(s); };
+async function connectWallet(){
+  const prov=walletProvider();
+  if(!prov){ openPanel("wallet"); return; }
+  const b=$("#walletBtn"); b.disabled=true;
+  try{
+    const r=await prov.connect();
+    const pk=((r&&r.publicKey)||prov.publicKey).toString();
+    const nr=await fetch("/api/nonce?wallet="+encodeURIComponent(pk)); const nj=await nr.json(); if(!nr.ok) throw new Error(nj.error);
+    const signed=await prov.signMessage(new TextEncoder().encode(nj.message),"utf8");
+    const sig=toB64(signed.signature||signed);
+    const lr=await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({wallet:pk,signature:sig})});
+    const lj=await lr.json(); if(!lr.ok) throw new Error(lj.error);
+    NET.mode="wallet"; NET.wallet=pk; NET.token=lj.token;
+    try{ localStorage.setItem(SESSION_KEY,JSON.stringify({wallet:pk,token:lj.token})); localStorage.removeItem(KEY); }catch(e){}
+    if(lj.save){ loadState(lj.save); toast("Welcome back! Your farm is loaded."); }
+    else { toast("Wallet connected. Your farm saves automatically now."); NET.dirty=true; flushSave(); }
+    renderWallet();
+  }catch(e){
+    const m=(e&&e.message)||""; toast(/reject|cancel|denied|closed/i.test(m)||!m ? "Wallet sign-in cancelled." : m);
+  }finally{ b.disabled=false; }
+}
+function walletMenu(){
+  const b=$("#walletBtn").getBoundingClientRect();
+  closePanel(); bub={wx:0,wy:0}; bubLive=null;
+  const el=$("#bubble"); el.hidden=false;
+  el.innerHTML=`<div class="nm">Farm saved to</div><div class="info" style="word-break:break-all;margin:4px 0 8px">${NET.wallet}</div><div class="row"><button class="btn red" id="wOut">Disconnect</button></div>`;
+  const place=()=>{ el.style.left=Math.min(W-el.offsetWidth/2-8,b.left+b.width/2)+"px"; el.style.top=(b.bottom+el.offsetHeight+18)+"px"; };
+  place(); bub.place=place;
+  $("#wOut").onclick=async()=>{ await flushSave(); try{ const p=walletProvider(); p&&p.disconnect&&p.disconnect(); }catch(e){}
+    sessionEnded(); loadState(fresh()); closeBubble(); toast("Disconnected. You're playing as a guest now, so progress won't save."); };
+}
+$("#walletBtn").onclick=()=>{ if(NET.mode==="wallet") walletMenu(); else connectWallet(); };
+$("#guestNote").onclick=()=>connectWallet();
+
+async function initNet(){
+  let cfg=null;
+  try{ const r=await fetch("/api/config",{cache:"no-store"}); if(r.ok) cfg=await r.json(); }catch(e){}
+  if(!cfg||!cfg.saves){ NET.mode="local"; renderWallet(); return; }
+  showCA(cfg.ca); $("#guideBtn").href="/docs";
+  NET.mode="guest";
+  let sess=null; try{ sess=JSON.parse(localStorage.getItem(SESSION_KEY)); }catch(e){}
+  if(sess&&sess.token){
+    try{
+      const r=await fetch("/api/save",{headers:{"Authorization":"Bearer "+sess.token}});
+      if(r.ok){ const j=await r.json(); NET.mode="wallet"; NET.wallet=sess.wallet; NET.token=sess.token;
+        if(j.save) loadState(j.save); else { NET.dirty=true; flushSave(); } }
+      else try{ localStorage.removeItem(SESSION_KEY); }catch(e){}
+    }catch(e){}
+  }
+  renderWallet();
+  setInterval(()=>fetch("/api/config",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(c=>{ if(c) showCA(c.ca); }).catch(()=>{}),60000);
+}
+if(!SHOWCASE) initNet();
 hud(); requestAnimationFrame(frame);
 })();
 </script>

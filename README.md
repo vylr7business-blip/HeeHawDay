@@ -24,3 +24,7 @@ Set a `COIN_CA` variable on the Railway service and the address shows under the 
 
 `game.html` is the single-file game. After changing it, run `python3 build.py` to regenerate `index.html`. The player guide is `docs.html` (served at `/docs`).
 
+
+## Saving with a Solana wallet
+
+Players sign a free message with Phantom, Solflare or Backpack; the server checks the signature and saves their farm under that wallet. Saves live in `DATA_DIR` (the Railway volume mount). Guests can play, but nothing is kept until they connect.
