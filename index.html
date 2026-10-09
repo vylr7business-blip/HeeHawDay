@@ -455,8 +455,18 @@ function gableRoof(x,y,w,d,h,rh,roof,roofDk,gable,o=.18){
   const A=up(iso(x-o,y),h),B=up(iso(x+w,y),h),C=up(iso(x+w,y+d+o),h),D=up(iso(x-o,y+d+o),h);
   const R1=up(iso(x-o,y+d/2),h+rh),R2=up(iso(x+w,y+d/2),h+rh);
   poly([A,B,R2,R1],roofDk);
-  poly([up(iso(x+w,y),h),up(iso(x+w,y+d),h),up(iso(x+w,y+d/2),h+rh*.92)],gable);
+  poly([up(iso(x+w,y),h),up(iso(x+w,y+d),h),up(iso(x+w,y+d/2),h+rh)],gable);
   poly([D,C,R2,R1],roof);
+}
+// Chimney standing on a gable roof (ridge along x at y+d/2): its base sits exactly on the roof surface.
+function chimney(px,py,y,d,h,rh,w,tall,speed){
+  const z=h+rh*(1-Math.abs(py-(y+d/2))/(d/2));
+  const base=up(iso(px,py),z);
+  ctx.fillStyle="#9b5a38"; ctx.strokeStyle=OUT; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.rect(base[0]-w/2,base[1]-tall,w,tall+5); ctx.fill(); ctx.stroke();
+  ctx.fillStyle="#7a4128"; ctx.beginPath(); ctx.rect(base[0]-w/2-2,base[1]-tall-5,w+4,6); ctx.fill(); ctx.stroke();
+  const top=[base[0],base[1]-tall-6], t=now()/speed;
+  for(let k=0;k<3;k++){ const f=(t+k/3)%1; ctx.beginPath(); ctx.arc(top[0]+f*14,top[1]-6-f*36,5+f*7,0,7); ctx.fillStyle=`rgba(255,255,255,${.75*(1-f)})`; ctx.fill(); }
 }
 function emoji(ch,x,y,size,flip=false,alpha=1,filter=null){
   ctx.save(); ctx.globalAlpha=alpha; if(filter) ctx.filter=filter; ctx.fillStyle="#000"; ctx.translate(x,y); if(flip) ctx.scale(-1,1);
@@ -573,7 +583,9 @@ function wallSign(D,C,t,hgt,w,h,text){
   const c=up(L(D,C,t),hgt), dx=C[0]-D[0], dy=C[1]-D[1], len=Math.hypot(dx,dy);
   ctx.save(); ctx.translate(c[0],c[1]); ctx.transform(dx/len,dy/len,0,1,0,0);
   ctx.beginPath(); ctx.rect(-w/2,-h/2,w,h); ctx.fillStyle="#fff4d6"; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle=OUT; ctx.stroke();
-  ctx.font=`${h*.72}px "Lilita One","Arial Rounded MT Bold",sans-serif`; ctx.textAlign="center"; ctx.textBaseline="middle";
+  let fs=h*.72; ctx.font=`${fs}px "Lilita One","Arial Rounded MT Bold",sans-serif`;
+  const tw=ctx.measureText(text).width; if(tw>w-8){ fs*= (w-8)/tw; ctx.font=`${fs}px "Lilita One","Arial Rounded MT Bold",sans-serif`; }
+  ctx.textAlign="center"; ctx.textBaseline="middle";
   ctx.fillStyle="#a92f21"; ctx.fillText(text,0,1);
   ctx.restore();
 }
@@ -618,7 +630,8 @@ function drawDairy(){
   const B=iso(b.x+b.w,b.y); for(const [t,hh,r] of [[.3,24,8],[.7,38,6]]){ const p=up(L(C,B,t),hh); ctx.beginPath(); ctx.ellipse(p[0],p[1],r,r*.7,-.3,0,7); ctx.fill(); }
   const d0=L(D,C,.42),d1=L(D,C,.58); poly([d0,d1,up(d1,30),up(d0,30)],"#4f7aa3");
   gableRoof(b.x,b.y,b.w,b.d,h,36,"#d2402f","#a92f21","#e4e4da");
-  const [lx,ly]=iso(b.x+b.w/2,b.y+b.d/2); label("DAIRY",lx,ly-h-12,14);
+  wallSign(D,C,.5,41,52,14,"DAIRY");
+  const [lx,ly]=iso(b.x+b.w/2,b.y+b.d/2);
   hitRect("prod",lx-100,ly-h-60,lx+100,ly+40,"dairy"); prodOverlay("dairy",lx+60,ly-h-30);
 }
 function drawBakery(){
@@ -629,8 +642,7 @@ function drawBakery(){
   for(let k=0;k<6;k++){ const a0=up(L(D,C,k/6),34),a1=up(L(D,C,(k+1)/6),34); poly([a0,a1,[a1[0],a1[1]+12],[a0[0],a0[1]+12]],k%2?"#fff":"#e04a2f",OUT,1.5); }
   const d0=L(D,C,.4),d1=L(D,C,.6); poly([d0,d1,up(d1,22),up(d0,22)],"#6b3a17");
   gableRoof(b.x,b.y,b.w,b.d,h,30,"#5d5a63","#46434c","#b85f36");
-  const ch=up(iso(b.x+2.2,b.y+.6),h+30); ctx.fillStyle="#9b5a38"; ctx.strokeStyle=OUT; ctx.lineWidth=2; ctx.fillRect(ch[0]-7,ch[1]-18,14,20); ctx.strokeRect(ch[0]-7,ch[1]-18,14,20);
-  const t=now()/1100; for(let k=0;k<3;k++){ const f=(t+k/3)%1; ctx.beginPath(); ctx.arc(ch[0]+f*12,ch[1]-24-f*34,5+f*7,0,7); ctx.fillStyle=`rgba(255,255,255,${.75*(1-f)})`; ctx.fill(); }
+  chimney(b.x+2.3,b.y+1.45,b.y,b.d,h,30,14,22,1100);
   const [lx,ly]=iso(b.x+b.w/2,b.y+b.d/2); label("BAKERY",lx,ly+20,14);
   hitRect("prod",lx-100,ly-h-60,lx+100,ly+40,"bakery"); prodOverlay("bakery",lx-60,ly-h-30);
 }
@@ -649,16 +661,16 @@ function drawBonfire(){
   hitRect("prod",X-80,Y-70,X+80,Y+60,"bonfire"); prodOverlay("bonfire",X+44,Y-60);
 }
 function drawHouse(){
-  const b=BUILD.house,h=54; const {D,C}=box(b.x,b.y,b.w,b.d,h,null,"#fbf1da","#e3d3b1"); const B=iso(b.x+b.w,b.y);
+  const b=BUILD.house,h=62; const {D,C}=box(b.x,b.y,b.w,b.d,h,null,"#fbf1da","#e3d3b1"); const B=iso(b.x+b.w,b.y);
   for(const t of [.18,.72]){ const w0=L(D,C,t),w1=L(D,C,t+.14); poly([up(w0,22),up(w1,22),up(w1,40),up(w0,40)],"#9fd8f0"); }
   const d0=L(D,C,.43),d1=L(D,C,.57); poly([d0,d1,up(d1,34),up(d0,34)],"#3f6f9a");
   for(const t of [.3,.6]){ const w0=L(C,B,t),w1=L(C,B,t+.14); poly([up(w0,22),up(w1,22),up(w1,40),up(w0,40)],"#9fd8f0"); }
   poly([iso(b.x-.05,b.y+b.d),iso(b.x+b.w,b.y+b.d),iso(b.x+b.w,b.y+b.d+.5),iso(b.x-.05,b.y+b.d+.5)],"#b07a45");
   gableRoof(b.x,b.y,b.w,b.d,h,40,"#4f7aa3","#3a5d80","#e3d3b1");
-  const [lx,ly]=iso(b.x+b.w/2,b.y+b.d/2); label("ELSBERRY FARMHOUSE",lx,ly-h-12,13);
+  wallSign(C,B,.5,51,112,14,"ELSBERRY FARMHOUSE");
+  const [lx,ly]=iso(b.x+b.w/2,b.y+b.d/2);
   hitRect("roster",lx-100,ly-h-60,lx+100,ly+50);
-  const ch=up(iso(b.x+.6,b.y+.8),h+42); ctx.fillStyle="#9b5a38"; ctx.strokeStyle=OUT; ctx.lineWidth=2; ctx.fillRect(ch[0]-6,ch[1]-16,12,18); ctx.strokeRect(ch[0]-6,ch[1]-16,12,18);
-  const t=now()/1200; for(let k=0;k<3;k++){ const f=(t+k/3)%1; ctx.beginPath(); ctx.arc(ch[0]+f*14,ch[1]-22-f*36,5+f*7,0,7); ctx.fillStyle=`rgba(255,255,255,${.75*(1-f)})`; ctx.fill(); }
+  chimney(b.x+.7,b.y+2.1,b.y,b.d,h,40,12,24,1200);
 }
 function drawBoard(){
   const b=BUILD.board; const [X,Y]=iso(b.x+.5,b.y+.5); shadow(X,Y,30);
