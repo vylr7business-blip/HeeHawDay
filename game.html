@@ -28,7 +28,9 @@ button:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:2
   filter:drop-shadow(2px 2px 0 var(--ink)) drop-shadow(-1.5px -1.5px 0 var(--ink)) drop-shadow(1.5px -1.5px 0 var(--ink)) drop-shadow(-1.5px 1.5px 0 var(--ink)) drop-shadow(0 4px 0 var(--ink))}
 .right{flex-direction:column;align-items:flex-end;gap:6px}
 .right .coins{margin-top:10px}
-.right .guide,.right .wallet{margin:0}
+.right .wallet{margin:0}
+.lvlbox{align-items:flex-start}
+.lvlbox .guide{margin:12px 0 0 10px;height:30px;font-size:14px}
 /* goal card */
 .goal{display:flex;align-items:center;gap:9px;background:var(--cream);border:3px solid var(--ink);border-radius:14px;box-shadow:0 4px 0 var(--ink);padding:5px 10px 5px 6px;text-align:left;max-width:min(300px,calc(100vw - 32px));animation:goalin .35s cubic-bezier(.2,1.4,.5,1)}
 .goal .gi{width:38px;height:38px;border-radius:10px;background:#fff;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;font-size:22px;flex:none}
@@ -65,7 +67,7 @@ button:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:2
 .menu button.mrow{font-weight:500;font-family:var(--body);text-align:left;cursor:pointer}
 .menu .mrow .mi{display:flex;align-items:center;justify-content:center}
 /* panel pop */
-.panel{animation:panelin .28s cubic-bezier(.2,1.3,.5,1)}
+.panel.enter{animation:panelin .28s cubic-bezier(.2,1.3,.5,1)}
 @keyframes panelin{from{transform:translateY(24px) scale(.94);opacity:0}}
 @media (max-width:640px){
   #hud{flex-wrap:wrap}
@@ -74,7 +76,8 @@ button:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:2
   .title{order:3;width:100%;align-items:flex-start;flex-direction:row;gap:8px;padding-top:0;margin-top:-4px}
   .logo{font-size:22px}
   .ca{margin:0;font-size:11px;padding:1px 7px}
-  .right .guide span{display:none}
+  .lvlbox .guide span{display:none}
+  .lvlbox .guide{padding:0 8px;margin-left:6px}
   .goal{position:fixed;left:12px;bottom:calc(96px + env(safe-area-inset-bottom,0px));max-width:calc(100vw - 24px);animation:none}
   #dock{left:12px;right:12px;justify-content:space-between;gap:4px;padding:6px 6px 8px}
   .rb{width:50px;height:50px;font-size:20px}
@@ -241,6 +244,7 @@ html.brand #hud,html.brand #dock,html.brand #hint,html.brand #banner,html.brand 
     <div class="lvlbox">
       <div class="star"><svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 6l12.6 27.4 29.9 3.3-22.4 20.1 6.3 29.5L50 71.4 23.6 86.3l6.3-29.5L7.5 36.7l29.9-3.3z" fill="#ffc531" stroke="#3a2414" stroke-width="7" stroke-linejoin="round"/></svg><b class="t-out" id="lvl">1</b></div>
       <div class="xpwrap"><div class="xp"><i id="xpbar"></i><span class="t-out" id="xptxt">0/15</span></div><div class="nextup" id="nextup"></div></div>
+      <a class="guide" id="guideBtn" href="https://heehawday-production.up.railway.app/docs" target="_blank" rel="noopener" aria-label="Game guide">📖<span>Guide</span></a>
     </div>
     <button class="goal" id="goal" hidden aria-live="polite"></button>
   </div>
@@ -248,7 +252,6 @@ html.brand #hud,html.brand #dock,html.brand #hint,html.brand #banner,html.brand 
   <div class="right">
     <div class="coins"><div class="coin">$</div><b class="t-out" id="coins">0</b></div>
     <button class="wallet" id="walletBtn" hidden>Connect wallet</button>
-    <a class="guide" id="guideBtn" href="https://heehawday-production.up.railway.app/docs" target="_blank" rel="noopener" aria-label="Game guide">📖<span>Guide</span></a>
   </div>
 </div>
 
@@ -1084,7 +1087,7 @@ function readyOrders(){ return S.orders.filter(o=>!o.wait&&Object.entries(o.item
 /* ---------- panels ---------- */
 let panel=null;
 function openPanel(kind,arg){ closeBubble(); panel={kind,arg}; renderPanel(true); }
-function closePanel(){ panel=null; $("#shade").hidden=true; }
+function closePanel(){ panel=null; const sh=$("#shade"); sh.hidden=true; sh.dataset.key=""; }
 function renderPanel(){
   const sh=$("#shade"); if(!panel){ sh.hidden=true; return; }
   if(sh.contains(document.activeElement) && document.activeElement.tagName==="INPUT") return;
@@ -1172,9 +1175,16 @@ function renderPanel(){
     title="Level Up!";
     body=`<div class="lvlup"><div class="big t-out">${S.lvl}</div><p>${panel.arg.length? "New on the farm:" : "Word about your farm is spreading down Grady Rd."}</p><div class="lvu" style="justify-content:center;margin-bottom:10px">${panel.arg.map(x=>`<span>${x}</span>`).join("")}</div><button class="btn gold" id="lvOk">Yeehaw!</button></div>`;
   }
-  const keepScroll=sh.querySelector(".pbody")?.scrollTop||0;
-  sh.innerHTML=`<div class="panel" role="dialog" aria-label="${title}"><div class="ribbon t-out">${title}</div><button class="x" aria-label="Close">✕</button><div class="pbody">${body}</div></div>`;
-  sh.hidden=false; sh.querySelector(".pbody").scrollTop=keepScroll;
+  // Live refreshes only swap the contents; the window itself (and its pop-in) is built once per open.
+  const key=k+"|"+(panel.arg&&typeof panel.arg==="string"?panel.arg:"");
+  const pb=sh.querySelector(".pbody");
+  if(!sh.hidden && pb && sh.dataset.key===key){
+    const keep=pb.scrollTop; pb.innerHTML=body; pb.scrollTop=keep;
+  } else {
+  sh.dataset.key=key;
+  sh.innerHTML=`<div class="panel enter" role="dialog" aria-label="${title}"><div class="ribbon t-out">${title}</div><button class="x" aria-label="Close">✕</button><div class="pbody">${body}</div></div>`;
+  sh.hidden=false;
+  }
   sh.querySelector(".x").onclick=closePanel;
   sh.onclick=e=>{ if(e.target===sh) closePanel(); };
   sh.querySelectorAll("[data-make]").forEach(b=>b.onclick=()=>{ const id=panel.arg, R=PROD[id].recipes[b.dataset.make], q=S.prod[id];
