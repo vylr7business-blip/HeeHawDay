@@ -38,6 +38,66 @@ button:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:2
 #hud{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;
   padding:calc(10px + env(safe-area-inset-top,0px)) 16px 0;pointer-events:none}
 #hud>*{pointer-events:auto}
+.hud-left{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.xpwrap{display:flex;flex-direction:column}
+.logo{font-family:var(--display);font-size:clamp(26px,4.6vw,44px);line-height:1;letter-spacing:.5px;font-weight:400;
+  background:linear-gradient(#fff6b0 0%,#ffd23f 45%,#f29a00 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(2px 2px 0 var(--ink)) drop-shadow(-1.5px -1.5px 0 var(--ink)) drop-shadow(1.5px -1.5px 0 var(--ink)) drop-shadow(-1.5px 1.5px 0 var(--ink)) drop-shadow(0 4px 0 var(--ink))}
+.right{flex-direction:column;align-items:flex-end;gap:6px}
+.right .coins{margin-top:10px}
+.right .guide,.right .wallet{margin:0}
+/* goal card */
+.goal{display:flex;align-items:center;gap:9px;background:var(--cream);border:3px solid var(--ink);border-radius:14px;box-shadow:0 4px 0 var(--ink);padding:5px 10px 5px 6px;text-align:left;max-width:min(300px,calc(100vw - 32px));animation:goalin .35s cubic-bezier(.2,1.4,.5,1)}
+.goal .gi{width:38px;height:38px;border-radius:10px;background:#fff;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;font-size:22px;flex:none}
+.goal .gt{min-width:0;flex:1}
+.goal .gt b{display:block;font-family:var(--display);font-weight:400;font-size:14px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.goal .gt .gp{height:8px;border:2px solid var(--ink);border-radius:6px;background:#5a3a1e;overflow:hidden;margin-top:4px}
+.goal .gt .gp i{display:block;height:100%;background:linear-gradient(#8fe34f,#4cae1f);transition:width .3s}
+.goal .gt small{font-size:11px;color:#7d5a3a;font-variant-numeric:tabular-nums}
+.goal .gr{font-family:var(--display);font-size:13px;white-space:nowrap;background:var(--gold);border:2px solid var(--ink);border-radius:8px;padding:2px 7px;flex:none}
+.goal.done{background:#dff5c6;border-color:var(--green-dk)}
+.goal.done .gr{background:var(--green);color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.3)}
+.goal.pop{animation:goalpop .45s ease-out}
+@keyframes goalin{from{transform:translateX(-30px);opacity:0}}
+@keyframes goalpop{30%{transform:scale(1.08)}}
+/* welcome */
+.welcome{text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+.welcome .mascot{font-size:84px;line-height:1;filter:drop-shadow(0 4px 0 rgba(58,36,20,.35));animation:bob 1.3s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-6px)}}
+.welcome h3{font-family:var(--display);font-weight:400;font-size:26px;margin:0;text-wrap:balance}
+.welcome p{margin:0;max-width:40ch}
+.steps{display:grid;gap:8px;width:100%;text-align:left;margin:4px 0 8px}
+.steps div{display:grid;grid-template-columns:40px 1fr;gap:10px;align-items:center;background:#fff;border:3px solid var(--ink);border-radius:12px;padding:6px 10px}
+.steps .n{width:34px;height:34px;border-radius:50%;background:var(--gold);border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;font-size:20px}
+.steps b{font-family:var(--display);font-weight:400;display:block}
+.steps small{color:#7d5a3a;font-size:13px}
+/* menu */
+.menu{display:grid;gap:10px}
+.menu .mrow{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;background:#fff;border:3px solid var(--ink);border-radius:14px;padding:8px 12px;text-decoration:none;color:var(--ink)}
+.menu .mrow .mi{font-size:26px;text-align:center}
+.menu .mrow b{font-family:var(--display);font-weight:400;font-size:16px;display:block}
+.menu .mrow small{color:#7d5a3a;font-size:13px}
+.menu .mrow .btn{font-size:14px;padding:5px 12px}
+.menu .mrow.xrow .mi svg{width:24px;height:24px}
+.menu button.mrow{font-weight:500;font-family:var(--body);text-align:left;cursor:pointer}
+.menu .mrow .mi{display:flex;align-items:center;justify-content:center}
+/* panel pop */
+.panel{animation:panelin .28s cubic-bezier(.2,1.3,.5,1)}
+@keyframes panelin{from{transform:translateY(24px) scale(.94);opacity:0}}
+@media (max-width:640px){
+  #hud{flex-wrap:wrap}
+  .hud-left{order:1}
+  .right{order:2}
+  .title{order:3;width:100%;align-items:flex-start;flex-direction:row;gap:8px;padding-top:0;margin-top:-4px}
+  .logo{font-size:22px}
+  .ca{margin:0;font-size:11px;padding:1px 7px}
+  .right .guide span{display:none}
+  .goal{position:fixed;left:12px;bottom:calc(96px + env(safe-area-inset-bottom,0px));max-width:calc(100vw - 24px);animation:none}
+  #dock{left:12px;right:12px;justify-content:space-between;gap:4px;padding:6px 6px 8px}
+  .rb{width:50px;height:50px;font-size:20px}
+  .rb span{font-size:10px}
+  .nextup{display:block;max-width:150px;font-size:11px}
+}
 [hidden]{display:none!important}
 .lvlbox{display:flex;align-items:center}
 .star{position:relative;width:58px;height:58px;z-index:2;filter:drop-shadow(0 3px 0 rgba(0,0,0,.25))}
@@ -84,9 +144,9 @@ button:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:2
 .ca.soon span{color:#8a6440;font-style:italic}
 .ca.soon i{display:none}
 @media (max-width:640px){.guide span{display:none}.guide{padding:0 9px}.wallet .long{display:none}.wallet .short{display:inline}.wallet small{display:none}.guestnote{font-size:11px;max-width:150px;text-align:left}}
-.title{display:flex;flex-direction:column;align-items:center;min-width:0;font-family:var(--display);color:#fff;font-size:clamp(22px,4.4vw,40px);letter-spacing:.5px;font-weight:400;line-height:1;text-align:center;padding-top:6px;pointer-events:none!important}
+.title{display:flex;flex-direction:column;align-items:center;min-width:0;padding-top:4px;font-weight:400;line-height:1;text-align:center;padding-top:6px;pointer-events:none!important}
 .title small{display:block;font-family:var(--body);font-size:11px;letter-spacing:2px;text-transform:uppercase;text-shadow:0 1px 0 var(--ink);margin-top:4px}
-@media (max-width:560px){.title{font-size:22px;padding-top:14px}.xp{width:90px}}
+@media (max-width:560px){.xp{width:100px}}
 .coins{display:flex;align-items:center;height:34px;background:#5a3a1e;border:3px solid var(--ink);border-radius:18px;padding:0 14px 0 4px;box-shadow:0 3px 0 rgba(0,0,0,.25);margin-top:10px}
 .coin{width:34px;height:34px;margin-left:-14px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3a8 0 18%,#ffd23f 19% 60%,#e09a00 61%);border:3px solid var(--ink);display:flex;align-items:center;justify-content:center;font-family:var(--display);color:#b06d00;font-size:16px}
 .coins b{font-family:var(--display);color:#fff;font-size:18px;font-weight:400;margin-left:8px;font-variant-numeric:tabular-nums}
@@ -128,7 +188,7 @@ button:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:2
 
 /* panels */
 #shade{position:fixed;inset:0;z-index:20;background:rgba(40,24,10,.45);display:flex;align-items:center;justify-content:center;padding:16px}
-.panel{width:min(600px,100%);max-height:calc(100% - 40px);display:flex;flex-direction:column;background:var(--cream);border:5px solid var(--ink);border-radius:22px;box-shadow:0 7px 0 var(--ink);position:relative;margin-top:18px}
+.panel{width:min(600px,100%);margin-top:30px;max-height:calc(100% - 40px);display:flex;flex-direction:column;background:var(--cream);border:5px solid var(--ink);border-radius:22px;box-shadow:0 7px 0 var(--ink);position:relative;margin-top:18px}
 .ribbon{position:absolute;top:-24px;left:50%;transform:translateX(-50%);background:linear-gradient(#c8783a,#9a5b2c);border:4px solid var(--ink);border-radius:14px;padding:4px 26px 6px;font-family:var(--display);font-weight:400;font-size:24px;color:#fff;white-space:nowrap;box-shadow:0 4px 0 var(--ink)}
 .x{position:absolute;top:-16px;right:-12px;width:42px;height:42px;border-radius:50%;background:linear-gradient(#ff7a5c,#d23a1c);border:4px solid var(--ink);box-shadow:0 4px 0 var(--ink);color:#fff;font-family:var(--display);font-size:20px;font-weight:400}
 .pbody{padding:30px 16px 16px;overflow-y:auto;min-height:0}
@@ -195,19 +255,23 @@ html.brand #hud,html.brand #dock,html.brand #hint,html.brand #banner,html.brand 
 <canvas id="cv" aria-label="Farm map. Drag to look around, tap fields, animals and buildings."></canvas>
 
 <div id="hud">
-  <div class="lvlbox">
-    <div class="star"><svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 6l12.6 27.4 29.9 3.3-22.4 20.1 6.3 29.5L50 71.4 23.6 86.3l6.3-29.5L7.5 36.7l29.9-3.3z" fill="#ffc531" stroke="#3a2414" stroke-width="7" stroke-linejoin="round"/></svg><b class="t-out" id="lvl">1</b></div>
-    <div><div class="xp"><i id="xpbar"></i><span class="t-out" id="xptxt">0/15</span></div><div class="nextup" id="nextup"></div><button class="guestnote" id="guestNote" hidden>Guest farm · connect a wallet to save</button></div>
+  <div class="hud-left">
+    <div class="lvlbox">
+      <div class="star"><svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 6l12.6 27.4 29.9 3.3-22.4 20.1 6.3 29.5L50 71.4 23.6 86.3l6.3-29.5L7.5 36.7l29.9-3.3z" fill="#ffc531" stroke="#3a2414" stroke-width="7" stroke-linejoin="round"/></svg><b class="t-out" id="lvl">1</b></div>
+      <div class="xpwrap"><div class="xp"><i id="xpbar"></i><span class="t-out" id="xptxt">0/15</span></div><div class="nextup" id="nextup"></div></div>
+    </div>
+    <button class="goal" id="goal" hidden aria-live="polite"></button>
+  </div>
+  <div class="title"><div class="logo">HeeHawDay</div><button class="ca" id="ca" hidden aria-label="Copy contract address"><b>CA</b><span class="full" id="caFull"></span><span class="short" id="caShort"></span><i>⧉</i></button></div>
+  <div class="right">
+    <div class="coins"><div class="coin">$</div><b class="t-out" id="coins">0</b></div>
+    <button class="wallet" id="walletBtn" hidden>Connect wallet</button>
     <a class="guide" id="guideBtn" href="https://heehawday-production.up.railway.app/docs" target="_blank" rel="noopener" aria-label="Game guide">📖<span>Guide</span></a>
   </div>
-  <div class="title"><div class="t-out">HeeHawDay</div><button class="ca" id="ca" hidden aria-label="Copy contract address"><b>CA</b><span class="full" id="caFull"></span><span class="short" id="caShort"></span><i>⧉</i></button></div>
-  <div class="right"><button class="wallet" id="walletBtn" hidden>Connect wallet</button><a class="xlink" href="https://x.com/HeeHawDay" target="_blank" rel="noopener" aria-label="HeeHawDay on X"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M17.75 3h3.07l-6.7 7.66L22 21h-6.17l-4.83-6.32L5.47 21H2.4l7.17-8.2L2 3h6.33l4.37 5.77L17.75 3zm-1.08 16.17h1.7L7.4 4.74H5.58l11.09 14.43z"/></svg></a><div class="coins"><div class="coin">$</div><b class="t-out" id="coins">0</b></div></div>
 </div>
 
-<div id="hint">Drag to look around · scroll or pinch to zoom · tap fields, animals and buildings</div>
-
 <div id="dock">
-  <button class="rb" data-open="help" aria-label="How to play">❓<span>Help</span></button>
+  <button class="rb" data-open="menu" aria-label="Menu">☰<span>Menu</span></button>
   <button class="rb" data-open="levels" aria-label="Level rewards">🗺️<span>Levels</span></button>
   <button class="rb" data-open="roster" aria-label="Animal names">🐾<span>Animals</span></button>
   <button class="rb" data-open="barn" aria-label="Barn storage">🏚️<span>Barn</span></button>
@@ -306,11 +370,17 @@ const CUSTOMERS = [
 ];
 
 /* ================= MAP LAYOUT (tile coords) ================= */
-const MAP = 34, TW = 72, TH = 36;
+const MAP = 56, TW = 72, TH = 36;
+// Land that opens as you level. The far regions are previews of what's coming later.
 const ZONES = [
-  {id:"east",  name:"East Meadow", x:24,y:0, w:10,h:16, lvl:5},
-  {id:"south", name:"South Fields",x:0, y:24,w:24,h:10, lvl:6},
-  {id:"trail", name:"Trailhead",   x:24,y:16,w:10,h:18, lvl:8},
+  {id:"east",    name:"East Meadow",     x:24,y:0, w:10,h:16, lvl:5,  icon:"🥛", tease:"Dairy"},
+  {id:"south",   name:"South Fields",    x:0, y:24,w:24,h:10, lvl:6,  icon:"🍑", tease:"18 plots · peaches"},
+  {id:"trail",   name:"Trailhead",       x:24,y:16,w:10,h:18, lvl:8,  icon:"🔥", tease:"Bonfire Pit"},
+  {id:"orchard", name:"Peach Orchard",   x:34,y:0, w:22,h:18, lvl:12, icon:"🌳", tease:"Fruit trees"},
+  {id:"mountain",name:"Mountain Trail",  x:34,y:18,w:22,h:20, lvl:15, icon:"⛰️", tease:"360° mountain view ride"},
+  {id:"rodeo",   name:"Rodeo Arena",     x:0, y:34,w:18,h:22, lvl:18, icon:"🤠", tease:"Barrel races"},
+  {id:"river",   name:"Riverbend",       x:18,y:34,w:16,h:22, lvl:20, icon:"🎣", tease:"Fishing dock"},
+  {id:"market",  name:"Grady Rd Market", x:34,y:38,w:22,h:18, lvl:25, icon:"🏪", tease:"Farm stand"},
 ];
 const zoneAt = (x,y) => ZONES.find(z=>x>=z.x&&x<z.x+z.w&&y>=z.y&&y<z.y+z.h);
 const zoneOpen = z => !z || S.lvl>=z.lvl;
@@ -509,7 +579,7 @@ function cloudShadows(){
     ctx.fillStyle=g; ctx.beginPath(); ctx.ellipse(X,Y,320,130,0,0,7); ctx.fill();
   }
 }
-const hash=(x,y)=>{ let h=x*374761393+y*668265263; h=(h^(h>>13))*1274126177; return ((h^(h>>16))>>>0)/4294967295; };
+const hash=(x,y)=>{ let h=(Math.imul(x|0,374761393)+Math.imul(y|0,668265263))|0; h=Math.imul(h^(h>>>13),1274126177); return ((h^(h>>>16))>>>0)/4294967295; };
 
 /* ---------- animal wandering ---------- */
 const RT={};
@@ -532,6 +602,7 @@ let HIT=[], OVER=[];
 function hitRect(kind,x0,y0,x1,y1,ref){ HIT.push({kind,ref,x0,y0,x1,y1}); }
 function drawGround(){
   for(let y=0;y<MAP;y++) for(let x=0;x<MAP;x++){
+    { const [cx,cy]=iso(x+.5,y+.5); if(!inView(cx,cy,60)) continue; }
     const z=zoneAt(x,y), open=zoneOpen(z);
     // soft, organic patches instead of a checkerboard
     const n=Math.sin(x*.55+y*.21)+Math.cos(y*.47-x*.18)+(hash(x,y)-.5)*.6;
@@ -552,6 +623,7 @@ function drawGround(){
   // road edges and pebbles
   for(let y=0;y<MAP;y++) for(let x=0;x<MAP;x++){
     if(!pathTile(x,y) || !zoneOpen(zoneAt(x,y))) continue;
+    { const [cx,cy]=iso(x+.5,y+.5); if(!inView(cx,cy,60)) continue; }
     const isRoad=(a,b)=>a>=0&&b>=0&&a<MAP&&b<MAP&&pathTile(a,b)&&zoneOpen(zoneAt(a,b));
     ctx.strokeStyle="rgba(140,62,24,.55)"; ctx.lineWidth=2.5; ctx.lineCap="round";
     const edge=(p,q)=>{ ctx.beginPath(); ctx.moveTo(...p); ctx.lineTo(...q); ctx.stroke(); };
@@ -586,22 +658,33 @@ function drawGround(){
 }
 function drawTree(x,y,dark){
   const [X,Y]=iso(x+.5,y+.5); const s=.85+hash(x,y)*.4;
+  if(cam.z<.4){ ctx.fillStyle=dark?"#3a7d22":"#46a02a"; ctx.strokeStyle=OUT; ctx.lineWidth=2.5; ctx.beginPath(); ctx.arc(X,Y-44*s,28*s,0,7); ctx.fill(); ctx.stroke(); return; }
   shadow(X,Y,26*s);
   ctx.fillStyle="#7a4b28"; ctx.strokeStyle=OUT; ctx.lineWidth=2.2; ctx.beginPath(); ctx.rect(X-5*s,Y-26*s,10*s,26*s); ctx.fill(); ctx.stroke();
   const blobs=[[0,-46,24],[-16,-34,18],[16,-34,18],[0,-62,17]];
   const c1=dark?"#3a7d22":"#46a02a", c2=dark?"#4f9a2e":"#6cc23d";
   const sway=dark?0:Math.sin(now()/1500+x*.7+y*.3)*1.6;
   for(const [dx,dy,r] of blobs){ const w=sway*(-dy/62); ctx.beginPath(); ctx.arc(X+dx*s+w,Y+dy*s,r*s,0,7); ctx.fillStyle=c1; ctx.fill(); ctx.stroke(); }
+  if(cam.z<.5) return; // far away: skip highlights
   for(const [dx,dy,r] of blobs){ const w=sway*(-dy/62); ctx.beginPath(); ctx.arc(X+dx*s-4*s+w,Y+dy*s-5*s,r*s*.5,0,7); ctx.fillStyle=c2; ctx.fill(); }
 }
 function drawZoneSign(z){
-  const [X,Y]=iso(z.x+z.w/2,z.y+z.h/2);
-  shadow(X,Y,34);
-  ctx.fillStyle="#7a4b28"; ctx.strokeStyle=OUT; ctx.lineWidth=2.2; ctx.fillRect(X-4,Y-60,8,60); ctx.strokeRect(X-4,Y-60,8,60);
-  poly([[X-70,Y-104],[X+70,Y-104],[X+70,Y-52],[X-70,Y-52]],"#e2b170");
-  label(z.name.toUpperCase(),X,Y-90,15);
-  label(`🔒 Level ${z.lvl}`,X,Y-68,15,"#ffe066");
-  hitRect("zone",X-74,Y-108,X+74,Y+4,z.id);
+  const [X,Y]=iso(z.x+z.w/2,z.y+z.h/2); if(!inView(X,Y,200)) return;
+  const big=z.lvl>=12, sw=big?96:74;
+  // a small clearing so the sign reads against the forest
+  ctx.fillStyle="#86c847"; ctx.beginPath(); ctx.ellipse(X,Y+4,big?200:170,big?96:82,0,0,7); ctx.fill();
+  for(let k=0;k<7;k++){ const a=k*0.9, fx=X+Math.cos(a)*(big?120:95), fy=Y+12+Math.sin(a)*(big?50:40); ctx.fillStyle=["#fff","#ffd84a","#ff9fb4"][k%3];
+    for(let j=0;j<3;j++){ ctx.beginPath(); ctx.arc(fx+(j-1)*6,fy+(j%2)*3,2.4,0,7); ctx.fill(); } }
+  shadow(X,Y,40);
+  ctx.fillStyle="#7a4b28"; ctx.strokeStyle=OUT; ctx.lineWidth=2.2;
+  for(const dx of [-sw*.55,sw*.55-8]){ ctx.fillRect(X+dx,Y-70,8,70); ctx.strokeRect(X+dx,Y-70,8,70); }
+  poly([[X-sw,Y-136],[X+sw,Y-136],[X+sw,Y-60],[X-sw,Y-60]],"#e2b170");
+  poly([[X-sw-4,Y-142],[X+sw+4,Y-142],[X+sw+4,Y-132],[X-sw-4,Y-132]],"#8a5528");
+  emoji(z.icon||"🔒",X-sw+24,Y-90,30);
+  label(z.name.toUpperCase(),X+12,Y-117,big?17:15);
+  label(z.tease||"",X+12,Y-97,11,"#fff4d6");
+  label(`🔒 Opens at Level ${z.lvl}`,X+12,Y-75,13,"#ffe066");
+  hitRect("zone",X-sw-4,Y-146,X+sw+4,Y+4,z.id);
 }
 function drawBarn(){
   const b=BUILD.barn,h=58; footShadow(b.x,b.y,b.w,b.d,.7); const {D,C}=box(b.x,b.y,b.w,b.d,h,null,"#d2402f","#a92f21");
@@ -708,6 +791,42 @@ function drawHouse(){
   hitRect("roster",lx-100,ly-h-60,lx+100,ly+50);
   chimney(b.x+.7,b.y+2.1,b.y,b.d,h,40,12,24,1200);
 }
+/* ---------- goal chain: a pinned card that teaches the loop, then keeps giving small targets ---------- */
+const GOALS=[
+  {id:"plant",   icon:"🌱", text:"Plant 3 crops",          n:3,  ev:"plant",   coins:10, xp:3},
+  {id:"harvest", icon:"🌾", text:"Harvest 4 plots",        n:4,  ev:"harvest", coins:15, xp:4},
+  {id:"feed",    icon:"🌿", text:"Feed HeeHaw",            n:1,  ev:"feedDonkey", coins:15, xp:3},
+  {id:"mill",    icon:"⚙️", text:"Make feed at the Mill",   n:1,  ev:"make",    coins:20, xp:4},
+  {id:"collect", icon:"🥚", text:"Collect from 3 animals", n:3,  ev:"collect", coins:20, xp:5},
+  {id:"order",   icon:"📋", text:"Deliver an order",       n:1,  ev:"deliver", coins:40, xp:8},
+  {id:"ride",    icon:"🐴", text:"Send 2 ponies on rides", n:2,  ev:"ride",    coins:30, xp:6},
+  {id:"gift",    icon:"🎁", text:"Open the daily gift",    n:1,  ev:"gift",    coins:25, xp:5},
+  {id:"harvest2",icon:"🥕", text:"Harvest 12 plots",       n:12, ev:"harvest", coins:40, xp:10},
+  {id:"orders3", icon:"📋", text:"Deliver 3 orders",       n:3,  ev:"deliver", coins:80, xp:15},
+  {id:"collect2",icon:"💛", text:"Collect from 10 animals",n:10, ev:"collect", coins:60, xp:12},
+  {id:"make3",   icon:"🧀", text:"Make 3 things at the Mill or kitchens", n:3, ev:"make", coins:60, xp:12},
+];
+function goalState(){ if(!S.goal) S.goal={i:0,p:0}; return S.goal; }
+function curGoal(){ const g=goalState(); return GOALS[g.i % GOALS.length]; }
+function progressGoal(ev,amt=1){
+  if(SHOWCASE) return;
+  const g=goalState(), G=curGoal(); if(g.done || G.ev!==ev) return;
+  g.p=Math.min(G.n,g.p+amt); renderGoal();
+  if(g.p>=G.n){ g.done=true; renderGoal(); const el=$("#goal"); el.classList.add("pop"); setTimeout(()=>el.classList.remove("pop"),500); }
+  save();
+}
+function claimGoal(){
+  const g=goalState(), G=curGoal(); if(!g.done) return;
+  const r=$("#goal").getBoundingClientRect(); gain(G.xp,G.coins,r.left+r.width/2,r.top);
+  g.i++; g.p=0; g.done=false; save(); renderGoal(); toast(`Goal done! Next: ${curGoal().text}`);
+}
+function renderGoal(){
+  const el=$("#goal"); if(!el) return; const g=goalState(), G=curGoal(); el.hidden=false;
+  el.className="goal"+(g.done?" done":"");
+  el.innerHTML=`<span class="gi">${G.icon}</span><span class="gt"><b>${G.text}</b>${g.done?`<small>Tap to collect your reward</small>`:`<span class="gp"><i style="width:${g.p/G.n*100}%"></i></span><small>${g.p} / ${G.n}</small>`}</span><span class="gr">${g.done?"Claim!":`🪙${G.coins} ⭐${G.xp}`}</span>`;
+}
+$("#goal").onclick=claimGoal;
+
 /* ---------- daily gift crate by the farmhouse ---------- */
 const todayKey=()=>{ const d=new Date(); return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; };
 const giftReady=()=>S.giftDay!==todayKey();
@@ -729,7 +848,7 @@ function openGift(sx,sy){
   if(!giftReady()) return;
   const coins=30+S.lvl*15, pool=["wheat","corn",...(S.lvl>=2?["carrot","critterMix","sweetFeed"]:[]),"chickenFeed","barnFeed"];
   const item=pool[Math.floor(Math.random()*pool.length)], qty=item in CROPS?4:3;
-  S.giftDay=todayKey(); S.inv[item]=have(item)+qty;
+  S.giftDay=todayKey(); S.inv[item]=have(item)+qty; progressGoal("gift");
   sparkle(...iso(GIFT.x+.5,GIFT.y+.5),22,["#ffe066","#e04a2f","#fff","#9be35a"],-20);
   gain(5,coins,sx,sy); flyTo(sx,sy,iconOf(item),'[data-open="barn"]',150);
   toast(`Daily gift: ${coins} coins and ${qty} ${nameOf(item).toLowerCase()}. Come back tomorrow for another!`); save();
@@ -831,20 +950,27 @@ function zoneTrees(){
   for(const z of ZONES){ const open=zoneOpen(z);
     for(let y=z.y;y<z.y+z.h;y++) for(let x=z.x;x<z.x+z.w;x++){
       const h=hash(x*3+1,y*7+2);
-      if(!open){ if((x+y)%2===0 && h>.4) out.push([x,y,true]); }
+      if(!open){ const far=z.lvl>=12, cx=z.x+z.w/2, cy=z.y+z.h/2;
+        if(Math.abs(x+.5-cx)<3.2 && Math.abs(y+.5-cy)<3.2) continue; // clearing around the sign
+        if((x+y)%2===0 && h>(far?.5:.4)) out.push([x,y,true]); }
       else if(!reserved(x,y) && (h>.9 || ((x===MAP-1||y===MAP-1) && h>.45))) out.push([x,y,false]);
     } }
   zoneTreeCache=out; zoneTreeLvl=S.lvl; return out;
 }
+// Only draw what's on screen (the map is big).
+let VIEW={x0:-1e9,y0:-1e9,x1:1e9,y1:1e9};
+const inView=(X,Y,m=120)=>X>VIEW.x0-m&&X<VIEW.x1+m&&Y>VIEW.y0-m&&Y<VIEW.y1+m*1.6;
 function draw(){
-  ctx.setTransform(DPR,0,0,DPR,0,0); ctx.fillStyle="#79b93d"; ctx.fillRect(0,0,W,H);
+  ctx.setTransform(DPR,0,0,DPR,0,0); ctx.fillStyle="#5f9b33"; ctx.fillRect(0,0,W,H);
   ctx.setTransform(DPR*cam.z,0,0,DPR*cam.z,DPR*cam.x,DPR*cam.y);
+  { const [ax,ay]=toWorld(0,0), [bx,by]=toWorld(W,H); VIEW={x0:ax,y0:ay,x1:bx,y1:by}; }
   HIT=[]; OVER=[];
   drawGround(); cloudShadows();
   const items=[];
   for(let i=0;i<NPLOTS;i++){ const [x,y]=plotXY(i); if(zoneOpen(zoneAt(x,y))) items.push([x+y+1,()=>drawCrop(i)]); }
-  for(const [x,y] of BASE_TREES) items.push([x+y+1.2,()=>drawTree(x,y,false)]);
-  for(const [x,y,d] of zoneTrees()) items.push([x+y+1.2,()=>drawTree(x,y,d)]);
+  const tv=(x,y)=>{ const [X,Y]=iso(x+.5,y+.5); return inView(X,Y); };
+  for(const [x,y] of BASE_TREES) if(tv(x,y)) items.push([x+y+1.2,()=>drawTree(x,y,false)]);
+  for(const [x,y,d] of zoneTrees()) if(tv(x,y)) items.push([x+y+1.2,()=>drawTree(x,y,d)]);
   const B=BUILD, k=b=>b.x+b.w+b.y+b.d-.5;
   items.push([GIFT.x+GIFT.y+1,drawGift]);
   items.push([k(B.barn),drawBarn],[B.silo.x+B.silo.y+1.4,drawSilo],[k(B.mill),drawMill],[k(B.house)+.2,drawHouse],[B.board.x+B.board.y+1.1,drawBoard]);
@@ -912,11 +1038,11 @@ function seedBubble(i){
 function plant(i){
   if(!owned(i) || S.plots[i]) return false; const k=plantMode, c=CROPS[k];
   if(have(k)>0) S.inv[k]--; else if(S.coins>=c.seed) S.coins-=c.seed; else { toast(`Out of ${c.name.toLowerCase()} and coins for seed.`); plantMode=null; showBanner(); return false; }
-  S.plots[i]={crop:k,start:now()}; S.lastCrop[i]=k; save(); return true;
+  S.plots[i]={crop:k,start:now()}; S.lastCrop[i]=k; progressGoal("plant"); save(); return true;
 }
 function harvest(i,sx,sy){
   const p=S.plots[i]; if(!plotReady(p)) return false; const c=CROPS[p.crop];
-  S.inv[p.crop]=have(p.crop)+2; S.plots[i]=null; gain(c.xp,0);
+  S.inv[p.crop]=have(p.crop)+2; S.plots[i]=null; gain(c.xp,0); progressGoal("harvest");
   const [x,y]=plotXY(i); sparkle(...iso(x+.5,y+.5),8,["#ffe066","#9be35a","#fff"]);
   if(sx!=null){ floatScreen(sx,sy,`+2 ${c.icon}`); flyTo(sx,sy,c.icon,'[data-open="barn"]'); flyTo(sx,sy,c.icon,'[data-open="barn"]',90); flyTo(sx,sy,"⭐",".star",160); }
   save(); return true;
@@ -927,13 +1053,14 @@ function showBanner(){
   b.innerHTML=`<span class="big">${c.icon}</span><span>Planting ${c.name.toLowerCase()} (${have(plantMode)} left). Tap or drag across empty plots.</span><button class="btn" id="doneP">Done</button>`;
   b.hidden=false; $("#doneP").onclick=()=>{ plantMode=null; showBanner(); };
 }
-function feed(a){ const K=KINDS[a.kind]; if(have(K.feed)<=0) return false; S.inv[K.feed]--; a.start=now(); save(); return true; }
+function feed(a){ const K=KINDS[a.kind]; if(have(K.feed)<=0) return false; S.inv[K.feed]--; a.start=now();
+  if(a.kind==="donkey") progressGoal("feedDonkey"); if(a.kind==="pony"||a.kind==="horse") progressGoal("ride"); save(); return true; }
 function collect(a,sx,sy){ const K=KINDS[a.kind]; if(!animalReady(a)) return false; let coins=0;
   for(const [k,v] of Object.entries(K.out)){ if(k==="coins") coins+=v; else S.inv[k]=have(k)+v; }
   if(!coins){ floatScreen(sx,sy-24,Object.entries(K.out).map(([k,v])=>`+${v} ${iconOf(k)}`).join(" "));
     for(const [k] of Object.entries(K.out)) flyTo(sx,sy,iconOf(k),'[data-open="barn"]'); }
   const r=rt(a); sparkle(...iso(r.x,r.y),10,["#ffe066","#ff9fb4","#fff"],-24);
-  a.start=null; gain(3,coins,sx,sy); save(); return true; }
+  a.start=null; gain(3,coins,sx,sy); progressGoal("collect"); save(); return true; }
 function animalBubble(a){
   const K=KINDS[a.kind], r=rt(a); const [wx,wy]=iso(r.x,r.y);
   const render=()=>{
@@ -1007,15 +1134,38 @@ function renderPanel(){
       return `<div class="card paper"><h4>${o.who}</h4><div class="note">${o.note}</div><div class="need">${Object.entries(o.items).map(([x,q])=>`<span class="chip ${have(x)>=q?"ok":""}">${iconOf(x)} ${have(x)}/${q}</span>`).join("")}</div>
         <div class="reward"><span>🪙 ${o.coins}</span><span>⭐ ${o.xp}</span></div><div class="acts"><button class="skip" data-skip="${i}">Skip</button><button class="btn" data-del="${i}" ${ok?"":"disabled"}>Deliver</button></div></div>`; }).join("")+`</div>`;
   }
+  if(k==="menu"){
+    title="Menu";
+    const w = NET.mode==="wallet" ? `<b>Farm saved to wallet</b><small>${shortAddr(NET.wallet)} · saves automatically</small>` : NET.mode==="guest" ? `<b>Guest farm</b><small>Connect a Solana wallet to save your progress</small>` : `<b>Saved in this browser</b><small>Progress stays on this device</small>`;
+    const wbtn = NET.mode==="wallet" ? `<button class="btn red" id="mDisc">Disconnect</button>` : NET.mode==="guest" ? `<button class="btn" id="mConn">Connect</button>` : ``;
+    body=`<div class="menu">
+      <div class="mrow"><span class="mi">👛</span><span>${w}</span>${wbtn}</div>
+      <button class="mrow" data-open2="help"><span class="mi">❓</span><span><b>How to play</b><small>Crops, animals, feed, orders and levels</small></span><span class="btn">Open</span></button>
+      <a class="mrow" href="${$("#guideBtn").href}" target="_blank" rel="noopener"><span class="mi">📖</span><span><b>Full game guide</b><small>Every recipe, timer and unlock</small></span><span class="btn gold">Read</span></a>
+      <a class="mrow xrow" href="https://x.com/HeeHawDay" target="_blank" rel="noopener"><span class="mi"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#111" d="M17.75 3h3.07l-6.7 7.66L22 21h-6.17l-4.83-6.32L5.47 21H2.4l7.17-8.2L2 3h6.33l4.37 5.77L17.75 3zm-1.08 16.17h1.7L7.4 4.74H5.58l11.09 14.43z"/></svg></span><span><b>@HeeHawDay on X</b><small>News, drops and farm updates</small></span><span class="btn" style="background:#111">Follow</span></a>
+      <div class="mrow"><span class="mi">🔄</span><span><b>Start a new farm</b><small>Erases this farm and starts from level 1</small></span><button class="btn red" id="resetBtn">Reset</button></div>
+    </div><p class="fine">HeeHawDay is a fan game inspired by Elsberry Riding &amp; Farm, Rockmart GA.</p>`;
+  }
+  if(k==="welcome"){
+    title="Howdy, partner!";
+    body=`<div class="welcome"><div class="mascot">🫏</div><h3>Welcome to Elsberry Farm</h3><p>HeeHaw and the gang need a hand running the place. Here's the whole job:</p>
+      <div class="steps">
+        <div><span class="n">🌾</span><span><b>Grow</b><small>Tap a plot to plant. Drag across plots to plant or harvest a bunch.</small></span></div>
+        <div><span class="n">🐐</span><span><b>Feed</b><small>Grind crops into feed at the Mill, then feed the animals and collect what they make.</small></span></div>
+        <div><span class="n">📋</span><span><b>Deliver</b><small>Fill orders on the board for coins and stars. Stars level you up and unlock more farm.</small></span></div>
+      </div>
+      <p><small>Your first goal is pinned at the top left. Follow the goals and you'll have the hang of it in a minute.</small></p>
+      <button class="btn gold" id="wGo" style="font-size:20px;padding:8px 28px">Let's farm!</button></div>`;
+  }
   if(k==="roster"){
     title="Farm Animals";
     body=`<p class="psub">Every animal on the farm. Tap a name to change it.</p><div class="roster">`+S.animals.map(a=>{ const K=KINDS[a.kind], lv=alvl(a), lk=lv>S.lvl;
       return `<div class="ra ${lk?"lock":""}"><div class="ic">${K.icon}</div><input id="nm-${a.id}" data-id="${a.id}" maxlength="18" value="${esc(a.name)}" aria-label="${K.sp} name"><small>${K.sp}${lk?` · Lv ${lv}`:""}</small></div>`; }).join("")+
-      `</div><p class="fine">The animal types come from Elsberry Riding &amp; Farm's trail ride and petting zoo listings. Names are placeholders until you rename them.</p><button class="btn red" id="resetBtn" style="margin-top:10px">Start a new farm</button>`;
+      `</div><p class="fine">The animal types come from Elsberry Riding &amp; Farm's trail ride and petting zoo listings. Names are placeholders until you rename them.</p>`;
   }
   if(k==="levels"){
     title="Level Rewards";
-    body=`<p class="psub">The higher you level, the more of the farm opens up.</p><div class="lvls">`+Array.from({length:9},(_,i)=>i+2).map(L=>{ const u=unlocksAt(L); const st=L<=S.lvl?"got":(L===S.lvl+1?"next":"");
+    body=`<p class="psub">The higher you level, the more of the farm opens up.</p><div class="lvls">`+Array.from({length:Math.max(...ZONES.map(z=>z.lvl))-1},(_,i)=>i+2).filter(L=>unlocksAt(L).length).map(L=>{ const u=unlocksAt(L); const st=L<=S.lvl?"got":(L===S.lvl+1?"next":"");
       return `<div class="lv ${st}"><div class="lvn">${L}</div><div class="lvu">${u.map(x=>`<span>${x}</span>`).join("")}</div>${L<=S.lvl?'<div class="tick">✓</div>':""}</div>`; }).join("")+`</div>`;
   }
   if(k==="help"){
@@ -1050,15 +1200,19 @@ function renderPanel(){
     const last=q.length? q[q.length-1].end : now(); q.push({k:b.dataset.make,end:Math.max(now(),last)+R.time*1000}); save(); renderPanel(); });
   sh.querySelectorAll("[data-take]").forEach(b=>b.onclick=()=>{ const id=panel.arg, i=+b.dataset.take, j=S.prod[id][i], R=PROD[id].recipes[j.k];
     S.inv[j.k]=have(j.k)+R.out; S.prod[id].splice(i,1);
-    const r=b.getBoundingClientRect(); floatScreen(r.left+r.width/2,r.top,`+${R.out} ${iconOf(j.k)}`); gain(R.xp,0); save(); renderPanel(); });
+    const r=b.getBoundingClientRect(); floatScreen(r.left+r.width/2,r.top,`+${R.out} ${iconOf(j.k)}`); gain(R.xp,0); progressGoal("make"); save(); renderPanel(); });
   sh.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.del, o=S.orders[i]; for(const [x,q] of Object.entries(o.items)) S.inv[x]-=q;
-    const r=b.getBoundingClientRect(); S.orders[i]={wait:now()+8000}; gain(o.xp,o.coins,r.left+r.width/2,r.top); save(); renderPanel(); });
+    const r=b.getBoundingClientRect(); S.orders[i]={wait:now()+8000}; gain(o.xp,o.coins,r.left+r.width/2,r.top); progressGoal("deliver"); save(); renderPanel(); });
   sh.querySelectorAll("[data-skip]").forEach(b=>b.onclick=()=>{ S.orders[+b.dataset.skip]={wait:now()+15000}; save(); renderPanel(); });
   sh.querySelectorAll(".ra input").forEach(inp=>{ inp.onchange=()=>{ const a=S.animals.find(x=>x.id==inp.dataset.id); const v=inp.value.trim(); if(v){ a.name=v; save(); } else inp.value=a.name; };
     inp.onkeydown=e=>{ if(e.key==="Enter") inp.blur(); }; });
-  const rb=$("#resetBtn"); if(rb) rb.onclick=()=>{ if(rb.dataset.armed){ S=fresh(); for(const x in RT) delete RT[x]; save(); closePanel(); toast("Fresh farm, fresh start."); return; }
+  const rb=$("#resetBtn"); if(rb) rb.onclick=()=>{ if(rb.dataset.armed){ S=fresh(); for(const x in RT) delete RT[x]; zoneTreeLvl=-1; save(); closePanel(); renderGoal(); toast("Fresh farm, fresh start."); return; }
     rb.dataset.armed=1; rb.textContent="Tap again to erase this farm"; };
   const lo=$("#lvOk"); if(lo) lo.onclick=closePanel;
+  const wg=$("#wGo"); if(wg) wg.onclick=()=>{ closePanel(); try{ localStorage.setItem("heehawday-welcomed","1"); }catch(e){} };
+  const mc=$("#mConn"); if(mc) mc.onclick=()=>{ closePanel(); connectWallet(); };
+  const md=$("#mDisc"); if(md) md.onclick=async()=>{ await flushSave(); try{ const p=walletProvider(); p&&p.disconnect&&p.disconnect(); }catch(e){} sessionEnded(); loadState(fresh()); closePanel(); toast("Disconnected. You're playing as a guest now, so progress won't save."); };
+  sh.querySelectorAll("[data-open2]").forEach(b=>b.onclick=()=>openPanel(b.dataset.open2));
 }
 document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>{ const v=b.dataset.open; if(v==="mill") openPanel("prod","mill"); else openPanel(v); });
 
@@ -1102,7 +1256,7 @@ function endPtr(e){
 }
 cv.addEventListener("pointerup",endPtr);
 cv.addEventListener("pointercancel",e=>{ ptrs.delete(e.pointerId); drag=null; pinch=null; cv.classList.remove("dragging"); });
-function zoomAt(sx,sy,f){ const z=Math.max(.35,Math.min(1.9,cam.z*f)); cam.x=sx-(sx-cam.x)*z/cam.z; cam.y=sy-(sy-cam.y)*z/cam.z; cam.z=z; clampCam(); }
+function zoomAt(sx,sy,f){ const z=Math.max(.22,Math.min(1.9,cam.z*f)); cam.x=sx-(sx-cam.x)*z/cam.z; cam.y=sy-(sy-cam.y)*z/cam.z; cam.z=z; clampCam(); }
 cv.addEventListener("wheel",e=>{ e.preventDefault(); zoomAt(e.clientX,e.clientY,Math.exp(-e.deltaY*.0015)); },{passive:false});
 
 function tap(sx,sy){
@@ -1125,7 +1279,7 @@ function tap(sx,sy){
     if(h.kind==="prod") return openPanel("prod",h.ref);
     if(h.kind==="gift") return openGift(sx,sy);
     if(["barn","orders","roster"].includes(h.kind)) return openPanel(h.kind);
-    if(h.kind==="zone"){ const z=ZONES.find(z=>z.id===h.ref); return toast(`Reach level ${z.lvl} to open ${z.name}.`); }
+    if(h.kind==="zone"){ const z=ZONES.find(z=>z.id===h.ref); return toast(`${z.icon} ${z.name}: ${z.tease}. Opens at level ${z.lvl}. You're level ${S.lvl}.`); }
     if(h.kind==="site"){ const P=PROD[h.ref]; return toast(`The ${P.name} opens at level ${P.lvl}.`); }
   }
   closeBubble(); if(plantMode){ plantMode=null; showBanner(); }
@@ -1136,7 +1290,7 @@ addEventListener("keydown",e=>{ if(e.key==="Escape"){ closeBubble(); closePanel(
 function hud(){
   $("#coins").textContent=S.coins; $("#lvl").textContent=S.lvl;
   $("#xpbar").style.width=Math.min(100,S.xp/need(S.lvl)*100)+"%"; $("#xptxt").textContent=`${S.xp} / ${need(S.lvl)}`;
-  const nx=unlocksAt(S.lvl+1); $("#nextup").textContent = nx.length? `Lv ${S.lvl+1}: ${nx.slice(0,2).join(", ")}${nx.length>2?" +"+(nx.length-2)+" more":""}` : "";
+  const nx=unlocksAt(S.lvl+1); $("#nextup").textContent = nx.length? `Next: ${nx[0]}${nx.length>1?" +"+(nx.length-1):""}` : "";
   while(S.orders.length<3) S.orders.push(newOrder());
   const ord=readyOrders(); const ob=$("#ordBadge"); ob.hidden=!ord; ob.textContent=ord;
   let md=0; for(const p in S.prod) md+=S.prod[p].filter(j=>j.end<=now()).length; const mb=$("#millBadge"); mb.hidden=!md; mb.textContent=md;
@@ -1149,7 +1303,7 @@ let last=performance.now(), slow=0;
 function frame(t){
   const dt=Math.min(.1,(t-last)/1000); last=t;
   stepAnimals(dt); stepParts(dt); draw(); placeBubble();
-  slow+=dt; if(slow>.5){ slow=0; hud(); if(!pressing){ if(panel && !["levels","level","roster","help","wallet"].includes(panel.kind)) renderPanel(); if(bubLive&&bub&&!$("#bubble").querySelector("input")) bubLive(); } }
+  slow+=dt; if(slow>.5){ slow=0; hud(); if(!pressing){ if(panel && !["levels","level","roster","help","wallet","menu","welcome"].includes(panel.kind)) renderPanel(); if(bubLive&&bub&&!$("#bubble").querySelector("input")) bubLive(); } }
   requestAnimationFrame(frame);
 }
 /* ---------- coin contract address (set on the server) ---------- */
@@ -1169,15 +1323,15 @@ const shortAddr=a=>a.slice(0,4)+"…"+a.slice(-4);
 function walletProvider(){ return (window.phantom&&window.phantom.solana) || window.solflare || (window.backpack&&window.backpack.solana) || window.solana || null; }
 function setSaveState(st){ const el=$("#saveState"); if(!el) return; el.dataset.st=st; el.textContent={pending:"Saving…",saving:"Saving…",saved:"Saved",error:"Not saved, retrying"}[st]||""; }
 function renderWallet(){
-  const b=$("#walletBtn"), note=$("#guestNote");
-  if(NET.mode==="local"||NET.mode==="pending"){ b.hidden=true; note.hidden=true; return; }
+  const b=$("#walletBtn");
+  if(NET.mode==="local"||NET.mode==="pending"){ b.hidden=true; return; }
   b.hidden=false;
-  if(NET.mode==="wallet"){ b.classList.add("on"); b.innerHTML=`<i class="dot"></i><span>${shortAddr(NET.wallet)}</span><small id="saveState"></small>`; note.hidden=true; setSaveState(NET.dirty?"pending":"saved"); }
-  else { b.classList.remove("on"); b.innerHTML=`<span class="long">Connect wallet</span><span class="short">Connect</span>`; note.hidden=false; }
+  if(NET.mode==="wallet"){ b.classList.add("on"); b.innerHTML=`<i class="dot"></i><span>${shortAddr(NET.wallet)}</span><small id="saveState"></small>`; setSaveState(NET.dirty?"pending":"saved"); }
+  else { b.classList.remove("on"); b.innerHTML=`<span class="long">Connect wallet · save farm</span><span class="short">Connect</span>`; }
 }
 function loadState(st){
   S=normalize(st); for(const k in RT) delete RT[k]; zoneTreeLvl=-1;
-  closeBubble(); closePanel(); plantMode=null; showBanner(); hud();
+  closeBubble(); closePanel(); plantMode=null; showBanner(); hud(); renderGoal();
 }
 async function flushSave(){
   if(NET.mode!=="wallet"||!NET.token) return;
@@ -1233,7 +1387,7 @@ function walletMenu(){
     sessionEnded(); loadState(fresh()); closeBubble(); toast("Disconnected. You're playing as a guest now, so progress won't save."); };
 }
 $("#walletBtn").onclick=()=>{ if(NET.mode==="wallet") walletMenu(); else connectWallet(); };
-$("#guestNote").onclick=()=>connectWallet();
+
 
 async function initNet(){
   let cfg=null;
@@ -1254,7 +1408,14 @@ async function initNet(){
   setInterval(()=>fetch("/api/config",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(c=>{ if(c) showCA(c.ca); }).catch(()=>{}),60000);
 }
 if(!SHOWCASE) initNet();
-hud(); requestAnimationFrame(frame);
+hud(); renderGoal(); requestAnimationFrame(frame);
+// camera intro: ease in from a slightly wider view
+if(!SHOWCASE && !matchMedia("(prefers-reduced-motion: reduce)").matches){
+  const z1=cam.z, t0=performance.now(); cam.z=z1*.82; centerOn(12.5,9.5);
+  (function ease(t){ const k=Math.min(1,(t-t0)/900), e=1-Math.pow(1-k,3); cam.z=z1*(.82+.18*e); centerOn(12.5,9.5); if(k<1) requestAnimationFrame(ease); })(t0);
+}
+let welcomed=false; try{ welcomed=!!localStorage.getItem("heehawday-welcomed"); }catch(e){}
+if(!SHOWCASE && !welcomed && S.lvl===1 && S.xp===0) setTimeout(()=>openPanel("welcome"),700);
 })();
 </script>
 </body>
