@@ -1,12 +1,4 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="HeeHawDay: a farm game set on Elsberry Riding & Farm in Rockmart, Georgia. Grow crops, feed the animals, run trail rides and fill party orders.">
 <title>HeeHawDay</title>
-<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font-size:14px}[hidden]{display:none!important}</style>
-
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Fredoka:wght@500;600;700&display=swap">
 <style>
 /* Layout: full-screen isometric farm map (canvas) you drag around; chunky game HUD floats on top; wooden pop-up panels for barn, mill, orders and animal roster. Single sunny look. */
@@ -159,8 +151,7 @@ button:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:2
 .lvlup .big{font-family:var(--display);font-size:54px;color:var(--gold);line-height:1;font-weight:400}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
-</head>
-<body>
+
 <canvas id="cv" aria-label="Farm map. Drag to look around, tap fields, animals and buildings."></canvas>
 
 <div id="hud">
@@ -975,5 +966,3 @@ loadCA(); setInterval(loadCA,60000);
 hud(); requestAnimationFrame(frame);
 })();
 </script>
-</body>
-</html>

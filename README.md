@@ -15,3 +15,11 @@ Then open http://localhost:3000. The whole game is in `index.html`; `server.js` 
 ## Deploy on Railway
 
 New Project → Deploy from GitHub repo → pick this repo. Railway runs `npm start` and sets `PORT` automatically. Then open Settings → Networking → Generate Domain.
+
+## Coin contract address
+
+Set a `COIN_CA` variable on the Railway service and the address shows under the HeeHawDay title (with a copy button) within a minute. No code change needed. Leave it empty to hide it.
+
+## Editing the game
+
+`game.html` is the single-file game. After changing it, run `python3 build.py` to regenerate `index.html`. The player guide is `docs.html` (served at `/docs`).

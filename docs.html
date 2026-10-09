@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HeeHawDay Guide</title>
+<meta name="description" content="How to play HeeHawDay: crops, animals, the feed mill, kitchens, orders and every level unlock.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Fredoka:wght@500;600;700&display=swap">
+<style>
+/* Layout: wooden-sign header, then a single readable column of cream "cards" for each part of the game, with reference tables. */
+:root{
+  --ink:#3a2414; --cream:#fff4d6; --paper:#fffbef; --wood:#9a5b2c; --wood-dk:#6b3a17; --grass:#86c847; --grass-dk:#5e9a34;
+  --gold:#ffc531; --red:#d2402f; --muted:#7d5a3a;
+  --display:"Lilita One","Arial Rounded MT Bold",system-ui,sans-serif; --body:"Fredoka","Trebuchet MS",system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{background:var(--grass)}
+body{margin:0;background:var(--grass);color:var(--ink);font-family:var(--body);font-weight:500;font-size:16px;line-height:1.55;
+  background-image:radial-gradient(circle at 20% 30%,#8fd14f 0 2px,transparent 3px),radial-gradient(circle at 70% 80%,#79bb3e 0 2px,transparent 3px);background-size:38px 38px,52px 52px;
+  padding:env(safe-area-inset-top,0px) 16px env(safe-area-inset-bottom,0px)}
+.t-out{text-shadow:-2px -2px 0 var(--ink),2px -2px 0 var(--ink),-2px 2px 0 var(--ink),2px 2px 0 var(--ink),0 4px 0 var(--ink)}
+header{max-width:860px;margin:0 auto;padding-block:28px 10px;text-align:center}
+h1{font-family:var(--display);font-weight:400;color:#fff;font-size:clamp(40px,8vw,68px);line-height:1;margin:0;letter-spacing:1px}
+.sub{color:#fff;font-size:18px;margin:10px 0 0;text-shadow:0 2px 0 var(--ink)}
+.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+.btn{font-family:var(--display);font-weight:400;font-size:18px;color:#fff;text-decoration:none;border-radius:14px;padding:8px 20px;border:3px solid var(--ink);box-shadow:0 4px 0 var(--ink);background:linear-gradient(#7fd347,#46a11c);text-shadow:0 2px 0 rgba(0,0,0,.3);display:inline-flex;align-items:center;gap:8px}
+.btn.dark{background:#111}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 var(--ink)}
+.btn:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.ca{display:inline-flex;align-items:center;gap:8px;margin-top:14px;background:var(--cream);border:3px solid var(--ink);border-radius:12px;box-shadow:0 3px 0 var(--ink);padding:4px 12px;font-size:14px;max-width:100%;cursor:pointer;font-family:var(--body);color:var(--ink)}
+.ca b{font-family:var(--display);font-weight:400;background:var(--gold);border:2px solid var(--ink);border-radius:6px;padding:0 6px}
+.ca span{overflow-wrap:anywhere;text-align:left}
+main{max-width:860px;margin:0 auto;padding-block:16px 48px;display:flex;flex-direction:column;gap:26px}
+nav.toc{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+nav.toc a{background:var(--cream);color:var(--ink);text-decoration:none;font-weight:700;font-size:14px;padding:4px 12px;border-radius:999px;border:2px solid var(--ink)}
+section{background:var(--paper);border:4px solid var(--ink);border-radius:20px;box-shadow:0 6px 0 var(--ink);padding:30px 22px 22px;position:relative;margin-top:14px}
+h2{position:absolute;top:-22px;left:22px;margin:0;font-family:var(--display);font-weight:400;font-size:24px;color:#fff;background:linear-gradient(#c8783a,#9a5b2c);border:4px solid var(--ink);border-radius:12px;padding:2px 16px 4px;box-shadow:0 4px 0 var(--ink);text-wrap:balance}
+h3{font-family:var(--display);font-weight:400;font-size:19px;margin:18px 0 6px;color:var(--wood-dk)}
+p{margin:0 0 12px;max-width:68ch}
+ul,ol{margin:0 0 12px;padding-left:22px;max-width:68ch}
+li{margin-bottom:5px}
+.note{background:#fff3c4;border:2px dashed var(--wood);border-radius:12px;padding:10px 14px;font-size:15px}
+.tbl{overflow-x:auto;margin:8px 0 14px;border:3px solid var(--ink);border-radius:14px;background:#fff}
+table{border-collapse:collapse;width:100%;font-size:15px;font-variant-numeric:tabular-nums}
+th{font-family:var(--display);font-weight:400;text-align:left;background:var(--cream);padding:8px 10px;border-bottom:3px solid var(--ink);white-space:nowrap}
+td{padding:7px 10px;border-bottom:1px solid #ecdcb8;vertical-align:top}
+tr:last-child td{border-bottom:none}
+td.ic{font-size:20px;width:36px;text-align:center}
+.lv{display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:26px;border-radius:13px;background:var(--gold);border:2px solid var(--ink);font-family:var(--display);font-size:14px;padding:0 6px}
+.levels{display:grid;gap:8px}
+.lvrow{display:grid;grid-template-columns:52px 1fr;gap:12px;align-items:start;background:#fff;border:3px solid var(--ink);border-radius:14px;padding:10px 12px}
+.lvrow .n{width:46px;height:46px;border-radius:50%;background:var(--gold);border:3px solid var(--ink);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:22px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips span{background:var(--cream);border-radius:8px;padding:2px 9px;font-size:14px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.card{background:#fff;border:3px solid var(--ink);border-radius:14px;padding:12px 14px;min-width:0}
+.card h3{margin-top:0}
+footer{max-width:860px;margin:0 auto;padding-block:0 32px;text-align:center;color:#fff;font-size:14px;text-shadow:0 1px 0 var(--ink)}
+footer a{color:#fff}
+@media (max-width:520px){section{padding:30px 14px 16px}h2{font-size:20px;left:14px}}
+</style>
+</head>
+<body>
+<header>
+  <h1 class="t-out">HeeHawDay</h1>
+  <p class="sub">The game guide for life on Elsberry Farm, Rockmart, Georgia</p>
+  <div class="actions">
+    <a class="btn" href="/">Play HeeHawDay</a>
+    <a class="btn dark" href="https://x.com/HeeHawDay" target="_blank" rel="noopener">Follow on 𝕏</a>
+  </div>
+  <button class="ca" id="ca" hidden aria-label="Copy contract address"><b>CA</b><span id="caText"></span><span aria-hidden="true">⧉</span></button>
+</header>
+
+<main>
+  <nav class="toc" aria-label="Guide sections">
+    <a href="#start">Getting started</a><a href="#crops">Crops</a><a href="#animals">Animals</a><a href="#mill">Feed Mill</a><a href="#kitchens">Kitchens</a><a href="#orders">Orders</a><a href="#levels">Levels</a><a href="#tips">Tips</a>
+  </nav>
+
+  <section id="start">
+    <h2 class="t-out">Getting started</h2>
+    <p>HeeHawDay is a farm game set on Elsberry Riding &amp; Farm, the trail-ride and petting-zoo farm out on Grady Rd in Rockmart, Georgia. You grow crops, grind them into feed, care for the animals, and fill orders from birthday parties, Date Night couples and trail-ride groups. The farm's mascot is <strong>HeeHaw</strong> the donkey, who lives in his own pen by the pond.</p>
+    <p>You start at level 1 with 60 coins, a few bags of wheat and corn, some feed, and 18 field plots. Your progress saves in your browser automatically, and crops and animals keep working while you're away.</p>
+    <h3>Controls</h3>
+    <div class="cols">
+      <div class="card"><h3>Move around</h3><p>Drag the map to look around. Scroll, or pinch on a phone, to zoom in and out.</p></div>
+      <div class="card"><h3>Do things</h3><p>Tap fields, animals and buildings. Tap and drag across fields to plant or harvest many at once.</p></div>
+      <div class="card"><h3>Buttons</h3><p>Help, Levels, Animals, Barn, Mill and Orders sit in the bottom corner. A red badge means something is ready.</p></div>
+    </div>
+  </section>
+
+  <section id="crops">
+    <h2 class="t-out">Crops</h2>
+    <ol>
+      <li>Tap an empty plot and pick a seed. If you're out of that crop, you can buy seed with coins.</li>
+      <li>Keep tapping or dragging across empty plots to plant more of the same crop. Press <strong>Done</strong> when you're finished.</li>
+      <li>When the crop is ripe, drag across the plots to harvest them in one swipe.</li>
+    </ol>
+    <p>Every seed you plant comes back as <strong>2</strong>, so always keep a little of each crop to replant.</p>
+    <div class="tbl"><table>
+      <thead><tr><th></th><th>Crop</th><th>Grow time</th><th>Seed price</th><th>Stars per harvest</th><th>Unlocks</th></tr></thead>
+      <tbody>
+        <tr><td class="ic">🌾</td><td>Wheat</td><td>30s</td><td>2 coins</td><td>1</td><td><span class="lv">1</span></td></tr>
+        <tr><td class="ic">🌽</td><td>Corn</td><td>1m</td><td>3 coins</td><td>1</td><td><span class="lv">1</span></td></tr>
+        <tr><td class="ic">🥕</td><td>Carrots</td><td>1m 30s</td><td>5 coins</td><td>2</td><td><span class="lv">2</span></td></tr>
+        <tr><td class="ic">🎃</td><td>Pumpkins</td><td>3m</td><td>9 coins</td><td>3</td><td><span class="lv">4</span></td></tr>
+        <tr><td class="ic">🍑</td><td>Georgia Peaches</td><td>4m</td><td>14 coins</td><td>4</td><td><span class="lv">6</span></td></tr>
+      </tbody>
+    </table></div>
+    <h3>Field plots</h3>
+    <p>Plots open for free as you level up, 72 in all. Overgrown plots show the level they open at.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Level</th><th>New plots</th><th>Total</th><th>Where</th></tr></thead>
+      <tbody>
+        <tr><td><span class="lv">1</span></td><td>18</td><td>18</td><td>Home fields by the farmhouse</td></tr>
+        <tr><td><span class="lv">2</span></td><td>6</td><td>24</td><td>Home fields</td></tr>
+        <tr><td><span class="lv">3</span></td><td>6</td><td>30</td><td>Home fields</td></tr>
+        <tr><td><span class="lv">4</span></td><td>6</td><td>36</td><td>Home fields</td></tr>
+        <tr><td><span class="lv">6</span></td><td>18</td><td>54</td><td>South Fields</td></tr>
+        <tr><td><span class="lv">8</span></td><td>18</td><td>72</td><td>South Fields</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section id="animals">
+    <h2 class="t-out">Animals</h2>
+    <p>The animals are the ones that live at the real farm: the riding string, the barn and coop, and the petting zoo. Tap a hungry animal to feed it (its thought bubble shows which feed it wants). When the timer finishes, tap it again to collect. Every collection earns 3 stars.</p>
+    <p>Tap an animal and press ✎ to rename it, or rename everyone at once from the <strong>Animals</strong> button or the farmhouse.</p>
+    <div class="tbl"><table>
+      <thead><tr><th></th><th>Animal</th><th>Eats</th><th>Gives</th><th>Time</th><th>Unlocks</th></tr></thead>
+      <tbody>
+        <tr><td class="ic">🫏</td><td><strong>HeeHaw</strong> the donkey, farm mascot</td><td>Barnyard Hay</td><td>2 Smiles</td><td>1m 10s</td><td><span class="lv">1</span></td></tr>
+        <tr><td class="ic">🐴</td><td>Ponies</td><td>Barnyard Hay</td><td>25 coins (pony ride)</td><td>45s</td><td><span class="lv">1</span></td></tr>
+        <tr><td class="ic">🐔</td><td>Chickens</td><td>Chicken Feed</td><td>1 Egg</td><td>30s</td><td><span class="lv">1</span></td></tr>
+        <tr><td class="ic">🐐</td><td>Goats</td><td>Barnyard Hay</td><td>1 Goat Milk</td><td>1m</td><td><span class="lv">1</span></td></tr>
+        <tr><td class="ic">🐑</td><td>Sheep</td><td>Barnyard Hay</td><td>1 Wool</td><td>1m 20s</td><td><span class="lv">2</span></td></tr>
+        <tr><td class="ic">🐇</td><td>Rabbits</td><td>Critter Mix</td><td>1 Smile</td><td>45s</td><td><span class="lv">2</span></td></tr>
+        <tr><td class="ic">🐶</td><td>Puppies</td><td>Critter Mix</td><td>1 Smile</td><td>30s</td><td><span class="lv">2</span></td></tr>
+        <tr><td class="ic">🐎</td><td>Trail Horses</td><td>Sweet Feed</td><td>50 coins (1-hr trail ride)</td><td>1m 30s</td><td><span class="lv">3</span></td></tr>
+        <tr><td class="ic">🐮</td><td>Baby Cow</td><td>Barnyard Hay</td><td>2 Smiles</td><td>1m 10s</td><td><span class="lv">3</span></td></tr>
+        <tr><td class="ic">🐥</td><td>Ducklings</td><td>Chicken Feed</td><td>1 Smile</td><td>40s</td><td><span class="lv">4</span></td></tr>
+        <tr><td class="ic">🐷</td><td>Baby Pigs</td><td>Critter Mix</td><td>2 Smiles</td><td>1m</td><td><span class="lv">4</span></td></tr>
+        <tr><td class="ic">🐢</td><td>Giant Tortoise</td><td>Critter Mix</td><td>4 Smiles</td><td>2m 30s</td><td><span class="lv">5</span></td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">More of each animal join the farm at higher levels. The Levels button in the game shows exactly who arrives when.</p>
+  </section>
+
+  <section id="mill">
+    <h2 class="t-out">Feed Mill</h2>
+    <p>Animals don't eat crops straight from the field. Tap the Feed Mill (the building with the spinning blades) to grind crops into feed. It works on up to 3 batches at a time, one after another. Collect finished batches from the mill for 2 stars each.</p>
+    <div class="tbl"><table>
+      <thead><tr><th></th><th>Feed</th><th>Ingredients</th><th>Makes</th><th>Time</th><th>Feeds</th><th>Unlocks</th></tr></thead>
+      <tbody>
+        <tr><td class="ic">🌰</td><td>Chicken Feed</td><td>2 wheat + 1 corn</td><td>3</td><td>20s</td><td>Chickens, ducklings</td><td><span class="lv">1</span></td></tr>
+        <tr><td class="ic">🌿</td><td>Barnyard Hay</td><td>1 wheat + 2 corn</td><td>3</td><td>30s</td><td>HeeHaw, ponies, goats, sheep, baby cow</td><td><span class="lv">1</span></td></tr>
+        <tr><td class="ic">🥬</td><td>Critter Mix</td><td>2 carrots + 1 wheat</td><td>3</td><td>40s</td><td>Rabbits, puppies, pigs, tortoise</td><td><span class="lv">2</span></td></tr>
+        <tr><td class="ic">🍯</td><td>Sweet Feed</td><td>2 corn + 1 carrot</td><td>2</td><td>40s</td><td>Trail horses</td><td><span class="lv">2</span></td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section id="kitchens">
+    <h2 class="t-out">Kitchens</h2>
+    <p>Later in the game, three more buildings turn farm goods into dishes that customers pay much more for. Each works on 2 batches at a time.</p>
+    <div class="tbl"><table>
+      <thead><tr><th></th><th>Dish</th><th>Building</th><th>Ingredients</th><th>Time</th><th>Stars</th><th>Unlocks</th></tr></thead>
+      <tbody>
+        <tr><td class="ic">🧀</td><td>Goat Cheese</td><td>Dairy</td><td>2 goat milk</td><td>1m</td><td>5</td><td><span class="lv">5</span></td></tr>
+        <tr><td class="ic">🧈</td><td>Butter</td><td>Dairy</td><td>3 goat milk</td><td>1m 30s</td><td>7</td><td><span class="lv">6</span></td></tr>
+        <tr><td class="ic">🍞</td><td>Farm Bread</td><td>Bakery</td><td>3 wheat + 1 egg</td><td>50s</td><td>5</td><td><span class="lv">7</span></td></tr>
+        <tr><td class="ic">🥧</td><td>Pumpkin Pie</td><td>Bakery</td><td>1 pumpkin + 2 eggs + 1 wheat</td><td>1m 40s</td><td>9</td><td><span class="lv">7</span></td></tr>
+        <tr><td class="ic">🍫</td><td>S'mores</td><td>Bonfire Pit</td><td>2 wheat + 1 goat milk</td><td>45s</td><td>5</td><td><span class="lv">8</span></td></tr>
+        <tr><td class="ic">🍮</td><td>Peach Cobbler</td><td>Bakery</td><td>2 peaches + 1 wheat + 1 butter</td><td>2m</td><td>14</td><td><span class="lv">9</span></td></tr>
+        <tr><td class="ic">🍲</td><td>Campfire Chili</td><td>Bonfire Pit</td><td>2 corn + 1 carrot + 1 pumpkin</td><td>1m 20s</td><td>9</td><td><span class="lv">9</span></td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section id="orders">
+    <h2 class="t-out">Orders</h2>
+    <p>The Order Board by the road always has 3 customers: birthday parties, Date Night couples, horse-camp kids, neighbors on Grady Rd and more. Each one lists the goods they want and what they'll pay in coins and stars.</p>
+    <ul>
+      <li>Green chips mean you have enough of that item. When every chip is green, press <strong>Deliver</strong>.</li>
+      <li>Don't like an order? Press <strong>Skip</strong>. A new customer pulls up the drive in 15 seconds.</li>
+      <li>Orders only ask for things you've unlocked, and pay more as you add pricier goods like pies and cobbler.</li>
+    </ul>
+  </section>
+
+  <section id="levels">
+    <h2 class="t-out">Levels and unlocks</h2>
+    <p>Stars fill the bar at the top of the screen. Each level needs 15 × level² stars (15 for level 1, 60 for level 2, 135 for level 3, and so on). The higher you go, the more of the farm opens up.</p>
+    <div class="levels">
+      <div class="lvrow"><div class="n">1</div><div class="chips"><span>🌾 Wheat</span><span>🌽 Corn</span><span>🫏 HeeHaw</span><span>🐴 3 Ponies</span><span>🐔 2 Chickens</span><span>🐐 2 Goats</span><span>⚙️ Feed Mill</span><span>🟫 18 plots</span></div></div>
+      <div class="lvrow"><div class="n">2</div><div class="chips"><span>🥕 Carrots</span><span>🥬 Critter Mix</span><span>🍯 Sweet Feed</span><span>🐑 Sheep</span><span>🐇 Rabbit</span><span>🐶 Puppy</span><span>🟫 6 more plots</span></div></div>
+      <div class="lvrow"><div class="n">3</div><div class="chips"><span>🐎 2 Trail Horses</span><span>🐮 Baby Cow</span><span>🟫 6 more plots</span></div></div>
+      <div class="lvrow"><div class="n">4</div><div class="chips"><span>🎃 Pumpkins</span><span>🐥 Duckling</span><span>🐷 Baby Pig</span><span>🟫 6 more plots</span></div></div>
+      <div class="lvrow"><div class="n">5</div><div class="chips"><span>🗺️ East Meadow</span><span>🥛 Dairy</span><span>🧀 Goat Cheese</span><span>🐢 Giant Tortoise</span><span>🐔 Another hen</span></div></div>
+      <div class="lvrow"><div class="n">6</div><div class="chips"><span>🗺️ South Fields</span><span>🍑 Georgia Peaches</span><span>🧈 Butter</span><span>🐎 Trail Horse</span><span>🐴 Pony</span><span>🐐 Goat</span><span>🐇 Rabbit</span><span>🟫 18 more plots</span></div></div>
+      <div class="lvrow"><div class="n">7</div><div class="chips"><span>🍞 Bakery</span><span>🍞 Farm Bread</span><span>🥧 Pumpkin Pie</span><span>🐑 Sheep</span><span>🐔 Hen</span><span>🐥 Duckling</span></div></div>
+      <div class="lvrow"><div class="n">8</div><div class="chips"><span>🗺️ Trailhead</span><span>🔥 Bonfire Pit</span><span>🍫 S'mores</span><span>🐎 Trail Horse</span><span>🐶 Puppy</span><span>🐷 Baby Pig</span><span>🟫 18 more plots</span></div></div>
+      <div class="lvrow"><div class="n">9</div><div class="chips"><span>🍮 Peach Cobbler</span><span>🍲 Campfire Chili</span><span>🐮 Baby Cow</span><span>🫏 HeeHaw Jr.</span></div></div>
+      <div class="lvrow"><div class="n">10</div><div class="chips"><span>🐢 Second Giant Tortoise</span></div></div>
+    </div>
+  </section>
+
+  <section id="tips">
+    <h2 class="t-out">Tips</h2>
+    <ul>
+      <li>Plant wheat and corn first. They feed almost everything, and both grow fast.</li>
+      <li>Keep the Feed Mill busy. Hungry animals earn nothing.</li>
+      <li>Ponies and trail horses pay coins directly, which is the quickest way to afford seed.</li>
+      <li>Skip orders that need something you can't make yet instead of letting them sit.</li>
+      <li>Check the Levels button to plan ahead. The next unlock also shows under the star bar.</li>
+    </ul>
+  </section>
+</main>
+
+<footer>
+  <p>HeeHawDay is a fan game inspired by Elsberry Riding &amp; Farm in Rockmart, GA. Follow <a href="https://x.com/HeeHawDay" target="_blank" rel="noopener">@HeeHawDay</a> on X.</p>
+</footer>
+
+<script>
+(() => {
+  const b = document.getElementById("ca");
+  fetch("/api/config", {cache:"no-store"}).then(r => r.ok ? r.json() : null).then(c => {
+    const ca = c && (c.ca || "").trim(); if (!ca) return;
+    document.getElementById("caText").textContent = ca; b.hidden = false;
+    b.onclick = () => { try { navigator.clipboard.writeText(ca).then(() => { b.lastChild.textContent = "✓"; setTimeout(() => b.lastChild.textContent = "⧉", 1500); }); } catch (e) {} };
+  }).catch(() => {});
+})();
+</script>
+</body>
+</html>
