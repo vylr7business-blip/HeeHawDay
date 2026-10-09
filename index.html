@@ -230,7 +230,7 @@ const KINDS = {
   puppy:   {sp:"Puppy",         icon:"🐶", sprite:"🐕", feed:"critterMix",  out:{heart:1},  time:30,  lvl:2, size:26, speed:.9},
   horse:   {sp:"Trail Horse",   icon:"🐎", feed:"sweetFeed",   out:{coins:50}, time:90,  lvl:3, size:42, speed:.6, label:"1-hr trail ride, $50"},
   calf:    {sp:"Baby Cow",      icon:"🐮", sprite:"🐄", feed:"barnFeed",    out:{heart:2},  time:70,  lvl:3, size:32, speed:.4},
-  donkey:  {sp:"Donkey",        icon:"🫏", custom:"donkey", feed:"barnFeed", out:{heart:2}, time:70, lvl:1, size:38, speed:.45},
+  donkey:  {sp:"Donkey",        icon:"🫏", feed:"barnFeed", out:{heart:2}, time:70, lvl:1, size:36, speed:.45},
   duckling:{sp:"Duckling",      icon:"🐥", feed:"chickenFeed", out:{heart:1},  time:40,  lvl:4, size:22, speed:.7},
   piglet:  {sp:"Baby Pig",      icon:"🐷", sprite:"🐖", feed:"critterMix",  out:{heart:2},  time:60,  lvl:4, size:28, speed:.55},
   tortoise:{sp:"Giant Tortoise",icon:"🐢", feed:"critterMix",  out:{heart:4},  time:150, lvl:5, size:34, speed:.15},
@@ -411,6 +411,10 @@ function label(text,x,y,size=12,color="#fff"){
   ctx.save(); ctx.font=`${size}px "Lilita One","Arial Rounded MT Bold",sans-serif`; ctx.textAlign="center"; ctx.textBaseline="middle";
   ctx.lineWidth=3.5; ctx.strokeStyle=OUT; ctx.lineJoin="round"; ctx.strokeText(text,x,y); ctx.fillStyle=color; ctx.fillText(text,x,y); ctx.restore();
 }
+// Some older systems can't draw the donkey emoji; compare it with an unassigned code point (tofu box).
+const DONKEY_OK=(()=>{ try{ const c=document.createElement("canvas"); c.width=c.height=32; const x=c.getContext("2d");
+  const img=ch=>{ x.clearRect(0,0,32,32); x.font='26px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; x.textBaseline="top"; x.fillText(ch,2,2); return x.getImageData(0,0,32,32).data.join(","); };
+  return img("\u{1FACF}")!==img("\u{1FAFF}"); }catch(e){ return true; } })();
 const hash=(x,y)=>{ let h=x*374761393+y*668265263; h=(h^(h>>13))*1274126177; return ((h^(h>>16))>>>0)/4294967295; };
 
 /* ---------- animal wandering ---------- */
@@ -638,38 +642,13 @@ function drawCrop(i){
       ctx.beginPath(); ctx.ellipse(X+s*.5,Y-s*.4,s*.55,s*.28,.6,0,7); ctx.fill(); ctx.stroke(); }
   }
 }
-function drawDonkey(X,Y,s,flip,seed){
-  const G="#9c99a3", GD="#6d6a74", CR="#ece6da";
-  ctx.save(); ctx.translate(X,Y); ctx.scale(flip?-s:s,s); ctx.lineJoin="round"; ctx.lineCap="round";
-  const st=(f)=>{ ctx.fillStyle=f; ctx.fill(); ctx.strokeStyle=OUT; ctx.lineWidth=2/s; ctx.stroke(); };
-  const ell=(x,y,rx,ry,rot,f)=>{ ctx.beginPath(); ctx.ellipse(x,y,rx,ry,rot,0,7); st(f); };
-  // tail
-  ctx.strokeStyle=OUT; ctx.lineWidth=4/s; ctx.beginPath(); ctx.moveTo(16,-20); ctx.quadraticCurveTo(24,-16,22,-8); ctx.stroke();
-  ctx.strokeStyle=GD; ctx.lineWidth=2.2/s; ctx.beginPath(); ctx.moveTo(16,-20); ctx.quadraticCurveTo(24,-16,22,-8); ctx.stroke();
-  ell(22,-7,2.8,4,0,"#3d3a42");
-  // legs
-  for(const lx of [-11,-5,7,13]){ ctx.beginPath(); ctx.rect(lx-2.5,-14,5,13); st(lx===-5||lx===13?GD:G); ctx.beginPath(); ctx.rect(lx-2.8,-3,5.6,3.5); st("#2d2a30"); }
-  // body + belly
-  ell(2,-19,17,9.5,0,G); ell(2,-14.5,10,3.6,0,CR);
-  // neck
-  ctx.beginPath(); ctx.moveTo(-8,-25); ctx.lineTo(-19,-36); ctx.lineTo(-13,-40); ctx.lineTo(-2,-25); ctx.closePath(); st(G);
-  // mane
-  ctx.strokeStyle="#3d3a42"; ctx.lineWidth=3.2/s; ctx.beginPath(); ctx.moveTo(-13,-41); ctx.lineTo(-3,-27); ctx.stroke();
-  // ears (wiggle)
-  const w=Math.sin(now()/380+seed)*.12;
-  for(const [ex,rot] of [[-17,-.25+w],[-12.5,.2-w]]){ ctx.save(); ctx.translate(ex,-44); ctx.rotate(rot); ctx.beginPath(); ctx.ellipse(0,-6,3.2,9,0,0,7); st(G); ctx.beginPath(); ctx.ellipse(0,-6,1.4,6,0,0,7); ctx.fillStyle="#f2b6b6"; ctx.fill(); ctx.restore(); }
-  // head + muzzle
-  ell(-20,-40,8.5,6.5,-.35,G); ell(-27,-36,5.6,4.6,-.2,CR);
-  ctx.fillStyle=OUT; ctx.beginPath(); ctx.arc(-29.5,-36.5,.9,0,7); ctx.fill();
-  ctx.beginPath(); ctx.arc(-19.5,-42,1.6,0,7); ctx.fill(); ctx.fillStyle="#fff"; ctx.beginPath(); ctx.arc(-19.9,-42.6,.6,0,7); ctx.fill();
-  ctx.restore();
-}
 function drawAnimal(a){
   const K=KINDS[a.kind], r=rt(a); const [X,Y]=iso(r.x,r.y);
   const hop=r.wait<=0? Math.abs(Math.sin(now()/150+a.id))*3 : 0;
   shadow(X,Y,K.size*.42);
-  if(K.custom==="donkey") drawDonkey(X,Y-hop,K.size/38*(a.id===11?1.12:.9),r.flip,a.id);
-  else emoji(K.sprite||K.icon,X,Y-hop+K.size*.12,K.size,r.flip,1,K.tint||null);
+  const sz=a.id===11? K.size*1.2 : K.size;
+  if(a.kind==="donkey" && !DONKEY_OK) emoji("🐎",X,Y-hop+sz*.12,sz,r.flip,1,"grayscale(1) brightness(1.08) contrast(.85)");
+  else emoji(K.sprite||K.icon,X,Y-hop+sz*.12,sz,r.flip,1,K.tint||null);
   hitRect("animal",X-K.size*.55,Y-K.size*1.05,X+K.size*.55,Y+6,a.id);
   const top=Y-K.size-6;
   OVER.push(()=>{
